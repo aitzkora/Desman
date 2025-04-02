@@ -10,6 +10,4 @@ include("likelihood.jl")
 export datapath 
 datapath = joinpath(dirname(pathof(Desman)), "..", "data")  # ☣️ non-relocatable
 
-
-
 end # module Desman

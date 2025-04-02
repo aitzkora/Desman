@@ -1,12 +1,10 @@
 using DataFrames
 using CSV
 using Desman
-#using ForwardDiff
-#using Zygote
 using FiniteDiff
 using Optim
+using Dates
 
-#
 # read raw data
 df1 = CSV.read(joinpath(datapath,"survcalibfeb2024_1.csv"), DataFrame; delim=';', decimal=',');
 df2 = CSV.read(joinpath(datapath,"survcalibaug2024_1.csv"), DataFrame; delim=';', decimal=',');
@@ -29,7 +27,7 @@ df = outerjoin(df, Σ; on=:siteID, matchmissing=:equal, makeunique=true)
 bio = Biotope(df, Σ)
 
 # optim problem data
-f = logLikelihoodNoCov(bio)
+f = logLikelihood(bio)
 ∇f(x) = FiniteDiff.finite_difference_gradient(f,x)
 
 # 0 ⩽ x ⩽ ∞ 

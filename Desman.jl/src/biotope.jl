@@ -1,13 +1,13 @@
 """
-structure for storing global variables relative to a Desman biotope place
+structure for storing a Desman biotope place
 """
 struct Biotope 
   df::DataFrame 
   Σ::DataFrame # covariance dataframe
   latrine::Vector{String}
   N::Int64 # number of distinct latrines
-  freq::Vector{Int64} # to store frequencies
-  idx::Vector{Vector{Int64}}
+  freq::Vector{Int64}   # to store frequencies
+  idx::Vector{Vector{Int64}} #
   # constructor
   function Biotope(df::DataFrame, cov::DataFrame)
     lat = sort(unique(df.siteID))
@@ -20,4 +20,3 @@ struct Biotope
     new(df, cov, lat, N, freq, idx)
   end 
 end
-

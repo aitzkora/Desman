@@ -8,8 +8,8 @@ using Optim
 
 #
 # read raw data
-df1 = CSV.read("R/data/survcalibfeb2024_1.csv", DataFrame; delim=';', decimal=',');
-df2 = CSV.read("R/data/survcalibaug2024_1.csv", DataFrame; delim=';', decimal=',');
+df1 = CSV.read(joinpath(datapath,"survcalibfeb2024_1.csv"), DataFrame; delim=';', decimal=',');
+df2 = CSV.read(joinpath(datapath,"survcalibaug2024_1.csv"), DataFrame; delim=';', decimal=',');
 df  = vcat(df1, df2, cols=:union)
 
 # convert string to float and NA to Inf
@@ -17,7 +17,7 @@ df.durationg =(x->(x=="NA") ? Inf : parse(Float64,replace(x, "," => "."))).(df[:
 finite_idx=findall(df.durationg .< Inf)
 
 ## covariance matrix
-Σ = CSV.read("R/data/Latrine_cov.csv", DataFrame; delim=";", decimal=',')
+Σ = CSV.read(joinpath(datapath,"Latrine_cov.csv"), DataFrame; delim=";", decimal=',')
 
 # join data and covariance
 df = outerjoin(df, Σ; on=:siteID, matchmissing=:equal, makeunique=true)

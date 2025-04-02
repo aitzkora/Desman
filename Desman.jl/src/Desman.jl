@@ -1,7 +1,7 @@
 module Desman
 
 using DataFrames
-export Biotope, logLikelihood 
+export Biotope, logLikelihood, pdf_frailty
 
 include("biotope.jl")
 include("likelihood.jl")

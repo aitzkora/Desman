@@ -2,6 +2,8 @@ using Desman
 using Test
 using CSV
 using DataFrames
+using Distributions
+using SpecialFunctions 
 
 
 @testset "likelihood-λ" begin
@@ -20,4 +22,9 @@ using DataFrames
     bio = Biotope(df, Σ)
     
    @test logLikelihood(bio)(λ) ≈  936.14681223 atol = 1e-5
+end
+
+@testset "Gamma functions" begin
+   @test pdf(Gamma(3.33, 1. /3.33), 54.) ≈ Γh(3.33, 54.) atol=1e-8
+   @test ∂ᵤΓh(3.2,5.1) ≈ (-0.00011584186052754) atol=1e-15
 end

@@ -21,7 +21,7 @@ using SpecialFunctions
     λ = [ λ₀, 1, 1]
     bio = Biotope(df, Σ)
     
-   @test logLikelihood(bio)(λ) ≈  936.14681223 atol = 1e-5
+    @test logLikelihood(bio, Int64[])(exp.(λ)) ≈  936.14681223 atol = 1e-5
 end
 
 @testset "Gamma functions" begin

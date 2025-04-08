@@ -27,21 +27,22 @@ df = outerjoin(df, Σ; on=:siteID, matchmissing=:equal, makeunique=true)
 bio = Biotope(df, Σ)
 
 # generates selections of covariables 
-nCov = size(bio.Σ,2) - 1
-for i=2^nCov-1:-1:0
-  selVar = findall(digits(i, base=2, pad=nCov).!=0)
-
-  # optim problem data
-  f = logLikelihood(bio, selVar)
-  ∇f(x) = FiniteDiff.finite_difference_gradient(f,x)
-  
-  # 0 ⩽ x ⩽ ∞ 
-  lower = [zeros(3) ; zeros(size(selVar,1))]
-  upper = Inf*[ones(3) ; ones(size(selVar,1))]
-  μ₀ = [λ; ones(size(selVar,1))]
-  
-  # we choose bfgs with box constrained optimization
-  println("covariables = ", selVar)
-  sol = optimize(f, ∇f, lower, upper, μ₀, Fminbox(LBFGS()), Optim.Options(show_trace = true, show_every = 3, iterations=50, g_tol=1e-3); inplace=false)
-  println("ₘᵢₙ ℒ(α,β,θ) -> ", sol.minimum)
-end
+#nCov = size(bio.Σ,2) - 1
+#selVar = [Int64[] for _ in 1:2^nCov]
+#for i=2^nCov-1:-1:0
+#  selVar[i+1] = findall(digits(i, base=2, pad=nCov).!=0)
+#
+#  ## optim problem data
+#  f = logLikelihood(bio, selVar)
+#  ∇f(x) = FiniteDiff.finite_difference_gradient(f,x)
+#  #
+#  ## 0 ⩽ x ⩽ ∞ 
+#  lower = 1e-6.* [ones(3) ; ones(size(selVar,1))]
+#  upper = Inf*[ones(3) ; ones(size(selVar,1))]
+#  μ₀ = [λ; ones(size(selVar,1))]
+#  #
+#  ## we choose bfgs with box constrained optimization
+#  println("covariables = ", selVar)
+#  sol = optimize(f, ∇f, lower, upper, μ₀, Fminbox(LBFGS()), Optim.Options(show_trace = true, show_every = 3, iterations=50, g_tol=1e-3); inplace=false)
+#  println("ₘᵢₙ ℒ(α,β,θ) -> ", sol.minimum)
+#end

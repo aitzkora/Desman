@@ -18,10 +18,18 @@ function grad_weibull(σ::Matrix{T}, λ::Vector{T}, w::T, xd::T, xg::T) where {T
   α = λ[2]
   g = zeros(3+length(λ[4:end]))
   g[1] = (exp(-(xd/θ)^α)*α*(xd/θ)^α/θ)*w
-  g[2] = (-exp(-(xd/θ)^α)*(xd/θ)^α*log(xd/θ))
+  if (xd != 0.0)
+    g[2] = (-exp(-(xd/θ)^α)*(xd/θ)^α*log(xd/θ))
+  else
+    g[2] = 0.0
+  end
   if (xg!=Inf)
     g[1] += -w*exp(-(xg/θ)^α)*α*(xg/θ)^α/θ
-    g[2] += exp(-(xg/θ)^α)*(xg/θ)^α*log(xg/θ)
+    if (xg != 0.0)
+      g[2] += exp(-(xg/θ)^α)*(xg/θ)^α*log(xg/θ)
+    else
+      g[2] = 0.0
+    end
   end
   g[3] = zero(T)
   g[4:end]= g[1] .* σ[:]
@@ -98,7 +106,7 @@ function grad_pdf_frailty_check(bio::Biotope, i::Int64, selVar::Vector{Int64}, :
   return proxyGrad
 end
 
-
+grad_pdf_frailty_check(bio::Biotope, i::Int64, selVar::Vector{Int64}) =  grad_pdf_frailty_check(bio, i, selVar, Float64)
 
 """
 Γh is a optimized version of x->pdf(Gamma(u,1/u),x)
@@ -122,7 +130,7 @@ function logLikelihood(b::Biotope, selVar::Vector{Int64}, methodInt = GaussLegen
 end
 
 function grad_logLikelihood(b::Biotope, selVar::Vector{Int64}, methodInt = QuadGKJL)
-    return λ->-sum([solve(IntegralProblem(grad_pdf_frailty(b, i, selVar), (0.0, Inf), λ), methodInt()).u ./
+    return λ->-sum([solve(IntegralProblem(grad_pdf_frailty_check(b, i, selVar), (0.0, Inf), λ), methodInt()).u ./
                    solve(IntegralProblem(pdf_frailty(b, i, selVar), (0.0, Inf), λ), methodInt())[1] for i=1:b.N])
 end
 

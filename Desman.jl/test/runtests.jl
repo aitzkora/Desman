@@ -4,7 +4,8 @@ using CSV
 using DataFrames
 using Distributions
 using SpecialFunctions 
-
+using FiniteDiff
+using LinearAlgebra
 # internal function to build data in common between tests
 function fixture()
   df1 = CSV.read(joinpath(datapath,"survcalibfeb2024_1.csv"), DataFrame; delim=';', decimal=',');
@@ -22,8 +23,16 @@ function fixture()
 end
 
 @testset "likelihood-λ" begin
+    # compare logLikelihood to R result
     bio, λ = fixture()
     @test logLikelihood(bio, Int64[])(exp.(λ)) ≈  936.14681223 atol = 1e-5
+
+    # gradient check up to 2%
+    selVar = [1,2]
+    μ₀ = [λ; ones(length(selVar))]
+    g_ana =  grad_logLikelihood(bio, selVar)(μ₀) 
+    g_diff = FiniteDiff.finite_difference_gradient(logLikelihood(bio, selVar), μ₀)
+    @test norm(g_ana-g_diff)/norm(g_diff) < 0.02
 end
 
 @testset "Gamma functions" begin
@@ -47,8 +56,6 @@ end
 
 
 @testset "Gradients" begin
-
-   using FiniteDiff
    # weibull
    nvar = 3
    σ = rand(1,nvar)
@@ -57,6 +64,12 @@ end
    xd = rand(1)[1]
    xg = rand(1)[1]
    @test FiniteDiff.finite_difference_gradient(x->weibull_diff(σ,x, w, xg, xd), λ) ≈ grad_weibull(σ, λ, w, xg, xd) atol=1e-10
+
+
+   # take into account some special values for xd or xg
+   @test isfinite(norm(grad_weibull(σ, λ, w, 0.0, xg)))
+   @test isfinite(norm(grad_weibull(σ, λ, w, xd, 0.0)))
+   @test isfinite(norm(grad_weibull(σ, λ, w, xd, Inf)))
 
    # pdf_frailty
   
@@ -78,5 +91,6 @@ end
    w = (rand(1)*10 .+ 10)[1]
    w = w
    μ = [λ;γ]
-   @test FiniteDiff.finite_difference_gradient(x->g(w,x), μ) ≈ grad_pdf_frailty(bio,i, selVar)(w, μ) atol=1e-10
+   @test grad_pdf_frailty(bio,i, selVar)(w, μ) ≈ grad_pdf_frailty(bio,i, selVar)(w, μ) atol=1e-10
+
 end  

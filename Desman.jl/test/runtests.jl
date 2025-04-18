@@ -10,17 +10,14 @@ function fixture()
   df1 = CSV.read(joinpath(datapath,"survcalibfeb2024_1.csv"), DataFrame; delim=';', decimal=',');
   df2 = CSV.read(joinpath(datapath,"survcalibaug2024_1.csv"), DataFrame; delim=';', decimal=',');
   df  = vcat(df1, df2, cols=:union)
-
   df.durationg =(x->(x=="NA") ? Inf : parse(Float64,replace(x, "," => "."))).(df[:,:durationg])
   finite_idx=findall(df.durationg .< Inf)
   Σ = CSV.read(joinpath(datapath,"Latrine_cov.csv"), DataFrame; delim=";", decimal=',')
   df = outerjoin(df, Σ; on=:siteID, matchmissing=:equal, makeunique=true)
-  
   # initial λ
   λ₀ = sum((df.durationg[finite_idx]+df.durationd[finite_idx])./2.)/length(finite_idx)
   λ = [ λ₀, 1, 1]
   bio = Biotope(df, Σ)
-
   return bio, λ
 end
 
@@ -34,14 +31,28 @@ end
    @test ∂ᵤΓh(3.2,5.1) ≈ (-0.00011584186052754) atol=1e-15
 end
 
+@testset "Products" begin
+
+   bio, _ = fixture()
+   selVar = [2,3,4]
+   nvar = length(selVar)
+   i = 15
+   j = bio.idxLat[i][end]
+   λ = rand(3+nvar)
+   w = (rand(1)*20 .+ 15)[1]
+   idx = collect([bio.covStart:bio.covEnd;])
+   σ = Matrix{Float64}(bio.df[j:j,idx[selVar]])
+   @test prod_weibull_exclude(bio, i, selVar, w, λ, j) ≈ prod_weibull(bio, i, selVar, w, λ) ./ weibull_diff(σ, λ, w, bio.df.durationd[j], bio.df.durationg[j]) atol=1e-10
+end
+
+
 @testset "Gradients" begin
+
    using FiniteDiff
    # weibull
    nvar = 3
    σ = rand(1,nvar)
-
    w = (rand(1)*10 .+ 10)[1]
-
    λ = rand(3+nvar)
    xd = rand(1)[1]
    xg = rand(1)[1]
@@ -57,4 +68,5 @@ end
    w = w
    μ = [λ;γ]
    @test FiniteDiff.finite_difference_gradient(x->g(w,x), μ) ≈ grad_pdf_frailty(bio,i, selVar)(w, μ) atol=1e-10
+
 end  

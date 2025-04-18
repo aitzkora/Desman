@@ -26,23 +26,24 @@ df = outerjoin(df, Σ; on=:siteID, matchmissing=:equal, makeunique=true)
 
 bio = Biotope(df, Σ)
 
-# generates selections of covariables 
-#nCov = size(bio.Σ,2) - 1
-#selVar = [Int64[] for _ in 1:2^nCov]
+# generates selections of covariates 
+nCov = size(bio.Σ,2) - 1
 #for i=2^nCov-1:-1:0
-#  selVar[i+1] = findall(digits(i, base=2, pad=nCov).!=0)
-#
+#for i=0:2^nCov-1
+#  selVar = findall(digits(i, base=2, pad=nCov).!=0)
+#  nVar = length(selVar)
 #  ## optim problem data
 #  f = logLikelihood(bio, selVar)
-#  ∇f(x) = FiniteDiff.finite_difference_gradient(f,x)
+#  #∇f(x) = FiniteDiff.finite_difference_gradient(f,x)
+#  ∇f(x) = grad_logLikelihood(bio, selVar)(x)
 #  #
 #  ## 0 ⩽ x ⩽ ∞ 
-#  lower = 1e-6.* [ones(3) ; ones(size(selVar,1))]
-#  upper = Inf*[ones(3) ; ones(size(selVar,1))]
+#  lower = 1e-6.* [ones(3) ; ones(nVar)]
+#  upper = Inf*[ones(3) ; ones(nVar)]
 #  μ₀ = [λ; ones(size(selVar,1))]
 #  #
 #  ## we choose bfgs with box constrained optimization
-#  println("covariables = ", selVar)
+#  println("covariates = ", selVar)
 #  sol = optimize(f, ∇f, lower, upper, μ₀, Fminbox(LBFGS()), Optim.Options(show_trace = true, show_every = 3, iterations=50, g_tol=1e-3); inplace=false)
 #  println("ₘᵢₙ ℒ(α,β,θ) -> ", sol.minimum)
 #end

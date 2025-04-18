@@ -29,13 +29,24 @@ function grad_weibull(σ::Matrix{T}, λ::Vector{T}, w::T, xd::T, xg::T) where {T
 end
 
 function prod_weibull(bio::Biotope, i::Int64, selVar::Vector{Int64}, w::T, λ::Vector{T}) where {T<:Real}
-  idx = collect([size(bio.df,2)-size(bio.Σ,2)+2:size(bio.df,2);])
-  γ = λ[4:end]
-  z = zeros(T,length(bio.idx[i]))
-  for (jj, j) in enumerate(bio.idx[i])
-      z[jj] = weibull_diff(Matrix{T}(bio.df[j:j,idx[selVar]]), λ, w, T(bio.df.durationd[j]), T(bio.df.durationg[j]))
+  idx = collect([bio.covStart:bio.covEnd;])
+  z = one(T)
+  for j in bio.idxLat[i]
+      # use view here to speed up
+      z *= weibull_diff(Matrix{T}(view(bio.df,j:j,idx[selVar])), λ, w, T(bio.df.durationd[j]), T(bio.df.durationg[j]))
   end 
-  return prod(z)
+  return z
+end
+
+function prod_weibull_exclude(bio::Biotope, i::Int64, selVar::Vector{Int64}, w::T, λ::Vector{T}, k::Int64) where {T<:Real}
+  idx = collect([bio.covStart:bio.covEnd;])
+  z = one(T)
+  for j in bio.idxLat[i]
+    if (j != k)
+        z *= weibull_diff(Matrix{T}(view(bio.df,j:j,idx[selVar])), λ, w, T(bio.df.durationd[j]), T(bio.df.durationg[j]))
+      end
+  end 
+  return z
 end
 
 """
@@ -52,14 +63,13 @@ end
 # default type is Float64
 pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}) = pdf_frailty(bio, i, selVar, Float64)
 
-
 function grad_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Type{T}) where {T<:Real}
   function proxyGrad(w::T, λ::Vector{T})
-    idx = collect([size(bio.df,2)-size(bio.Σ,2)+2:size(bio.df,2);])
+    idx = collect([bio.covStart:bio.covEnd;])
     p_wei = prod_weibull(bio, i, selVar, w, λ)
     ∂pdf = zeros(size(λ))
-    for (jj, j) in enumerate(bio.idx[i])
-        σ = Matrix{T}(bio.df[j:j,idx[selVar]])
+    for (jj, j) in enumerate(bio.idxLat[i])
+        σ = Matrix{T}(bio.df[j:j, idx[selVar]])
         p_exclu_j = p_wei ./ weibull_diff(σ, λ, w, T(bio.df.durationd[j]), T(bio.df.durationg[j]))
         ∂pdf += p_exclu_j .* grad_weibull(σ, λ, w, T(bio.df.durationd[j]), T(bio.df.durationg[j]))
     end 
@@ -71,6 +81,24 @@ function grad_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Type{
 end
 
 grad_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}) =  grad_pdf_frailty(bio, i, selVar, Float64)
+
+function grad_pdf_frailty_check(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Type{T}) where {T<:Real}
+  function proxyGrad(w::T, λ::Vector{T})
+    idx = collect([bio.covStart:bio.covEnd;])
+    p_wei = prod_weibull(bio, i, selVar, w, λ)
+    ∂pdf = zeros(size(λ))
+    for (jj, j) in enumerate(bio.idxLat[i])
+        σ = Matrix{T}(bio.df[j:j,idx[selVar]])
+        ∂pdf += prod_weibull_exclude(bio, i, selVar, w, λ, j) .* grad_weibull(σ, λ, w, T(bio.df.durationd[j]), T(bio.df.durationg[j]))
+    end 
+    ∂pdf *= Γh(λ[3], w)
+    ∂pdf[3] = p_wei * ∂ᵤΓh(λ[3], w)
+    return ∂pdf
+  end
+  return proxyGrad
+end
+
+
 
 """
 Γh is a optimized version of x->pdf(Gamma(u,1/u),x)

@@ -10,7 +10,9 @@ struct Biotope
   idxLat::Vector{Vector{Int64}} # sites indexes corresponding to a Latrin
   covStart::Int64
   covEnd::Int64
-  # constructor
+  durd::Vector{Float64}
+  durg::Vector{Float64}
+  matCov::Matrix{Float64}
   function Biotope(df::DataFrame, cov::DataFrame)
     lat = sort(unique(df.siteID))
     N = length(lat)
@@ -21,6 +23,10 @@ struct Biotope
     end
     covStart = size(df,2)-size(cov,2)+2
     covEnd = size(df,2)
-    new(df, cov, lat, N, freq, idxLat, covStart, covEnd)
+    durd = Float64.(df.durationd)
+    durg = Float64.(df.durationg)
+    idxCov = collect([covStart:covEnd;])
+    matCov = Matrix{Float64}(df[:,idxCov])
+    new(df, cov, lat, N, freq, idxLat, covStart, covEnd, durd, durg, matCov)
   end 
 end

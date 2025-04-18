@@ -33,6 +33,7 @@ end
     g_ana =  grad_logLikelihood(bio, selVar)(μ₀) 
     g_diff = FiniteDiff.finite_difference_gradient(logLikelihood(bio, selVar), μ₀)
     @test norm(g_ana-g_diff)/norm(g_diff) < 0.02
+
 end
 
 @testset "Gamma functions" begin
@@ -50,15 +51,17 @@ end
    λ = rand(3+nvar)
    w = (rand(1)*20 .+ 15)[1]
    idx = collect([bio.covStart:bio.covEnd;])
-   σ = Matrix{Float64}(bio.df[j:j,idx[selVar]])
-   @test prod_weibull_exclude(bio, i, selVar, w, λ, j) ≈ prod_weibull(bio, i, selVar, w, λ) ./ weibull_diff(σ, λ, w, bio.df.durationd[j], bio.df.durationg[j]) atol=1e-10
+   σ = view(bio.matCov, j, selVar)
+   @test prod_weibull_exclude(bio, i, selVar, w, λ, j) ≈ prod_weibull(bio, i, selVar, w, λ) ./ weibull_diff(σ, λ, w, bio.durd[j], bio.durg[j]) atol=1e-10
+
 end
 
 
 @testset "Gradients" begin
    # weibull
-   nvar = 3
-   σ = rand(1,nvar)
+
+   nvar = 5
+   σ = view(collect(rand(nvar,1)'),1,collect([1:nvar;]))
    w = (rand(1)*10 .+ 10)[1]
    λ = rand(3+nvar)
    xd = rand(1)[1]

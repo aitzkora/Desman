@@ -26,6 +26,9 @@ df = outerjoin(df, Σ; on=:siteID, matchmissing=:equal, makeunique=true)
 
 bio = Biotope(df, Σ)
 
+using BenchmarkTools
+using LinearAlgebra
+using Test
 # generates selections of covariates 
 nCov = size(bio.Σ,2) - 1
 #for i=2^nCov-1:-1:0

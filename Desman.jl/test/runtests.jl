@@ -69,4 +69,14 @@ end
    μ = [λ;γ]
    @test FiniteDiff.finite_difference_gradient(x->g(w,x), μ) ≈ grad_pdf_frailty(bio,i, selVar)(w, μ) atol=1e-10
 
+   # pdf_frailty_check
+   bio, λ = fixture()
+   i = 12
+   selVar = [3,4];
+   γ = rand(2)
+   g = pdf_frailty(bio, i, selVar)
+   w = (rand(1)*10 .+ 10)[1]
+   w = w
+   μ = [λ;γ]
+   @test FiniteDiff.finite_difference_gradient(x->g(w,x), μ) ≈ grad_pdf_frailty(bio,i, selVar)(w, μ) atol=1e-10
 end  

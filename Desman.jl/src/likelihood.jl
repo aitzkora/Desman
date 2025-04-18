@@ -69,7 +69,7 @@ function grad_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Type{
     p_wei = prod_weibull(bio, i, selVar, w, λ)
     ∂pdf = zeros(size(λ))
     for (jj, j) in enumerate(bio.idxLat[i])
-        σ = Matrix{T}(bio.df[j:j, idx[selVar]])
+        σ = Matrix{T}(view(bio.df,j:j, idx[selVar]))
         p_exclu_j = p_wei ./ weibull_diff(σ, λ, w, T(bio.df.durationd[j]), T(bio.df.durationg[j]))
         ∂pdf += p_exclu_j .* grad_weibull(σ, λ, w, T(bio.df.durationd[j]), T(bio.df.durationg[j]))
     end 
@@ -88,7 +88,7 @@ function grad_pdf_frailty_check(bio::Biotope, i::Int64, selVar::Vector{Int64}, :
     p_wei = prod_weibull(bio, i, selVar, w, λ)
     ∂pdf = zeros(size(λ))
     for (jj, j) in enumerate(bio.idxLat[i])
-        σ = Matrix{T}(bio.df[j:j,idx[selVar]])
+        σ = Matrix{T}(view(bio.df,j:j,idx[selVar]))
         ∂pdf += prod_weibull_exclude(bio, i, selVar, w, λ, j) .* grad_weibull(σ, λ, w, T(bio.df.durationd[j]), T(bio.df.durationg[j]))
     end 
     ∂pdf *= Γh(λ[3], w)
@@ -122,7 +122,7 @@ function logLikelihood(b::Biotope, selVar::Vector{Int64}, methodInt = GaussLegen
 end
 
 function grad_logLikelihood(b::Biotope, selVar::Vector{Int64}, methodInt = QuadGKJL)
-    return λ->sum([solve(IntegralProblem(grad_pdf_frailty(b, i, selVar), (0.0, Inf), λ), methodInt()).u ./
+    return λ->-sum([solve(IntegralProblem(grad_pdf_frailty(b, i, selVar), (0.0, Inf), λ), methodInt()).u ./
                    solve(IntegralProblem(pdf_frailty(b, i, selVar), (0.0, Inf), λ), methodInt())[1] for i=1:b.N])
 end
 

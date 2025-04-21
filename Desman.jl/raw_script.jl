@@ -4,7 +4,7 @@ using Desman
 using FiniteDiff
 using Optim
 using Dates
-
+using LineSearches
 # read raw data
 df1 = CSV.read(joinpath(datapath,"survcalibfeb2024_1.csv"), DataFrame; delim=';', decimal=',');
 df2 = CSV.read(joinpath(datapath,"survcalibaug2024_1.csv"), DataFrame; delim=';', decimal=',');
@@ -29,24 +29,24 @@ bio = Biotope(df, Σ)
 using BenchmarkTools
 using LinearAlgebra
 using Test
-# generates selections of covariates 
-nCov = size(bio.Σ,2) - 1
-#for i=2^nCov-1:-1:0
-#for i=0:2^nCov-1
-#  selVar = findall(digits(i, base=2, pad=nCov).!=0)
+
+function optimSelVar(selVar, m)
+  fun! = getfg!(bio,selVar)
+  nVar= length(selVar)
+  lower = 1e-6.* [ones(3) ; ones(nVar)]
+  upper = Inf*[ones(3) ; ones(nVar)]
+  #linesearch = LineSearches.HagerZhang(linesearchmax = 20)
+  inner_optimize =  LBFGS(; m = m)
+  μ₀ = [λ; ones(size(selVar,1))]
+  sol = optimize(Optim.only_fg!(fun!), lower, upper, μ₀, Fminbox(inner_optimize), 
+                 Optim.Options(show_trace = true, show_every = 3, iterations=50, g_tol=1e-3, f_tol=1e-3); inplace=true)
+end 
+
+# nCov = size(bio.matCov,2)
+# for i=0:2^nCov-1
+# selVar = findall(digits(i, base=2, pad=nCov).!=0)
+#  selVar = [1,2]
 #  nVar = length(selVar)
-#  ## optim problem data
-#  f = logLikelihood(bio, selVar)
-#  #∇f(x) = FiniteDiff.finite_difference_gradient(f,x)
-#  ∇f(x) = grad_logLikelihood(bio, selVar)(x)
-#  #
-#  ## 0 ⩽ x ⩽ ∞ 
-#  lower = 1e-6.* [ones(3) ; ones(nVar)]
-#  upper = Inf*[ones(3) ; ones(nVar)]
-#  μ₀ = [λ; ones(size(selVar,1))]
-#  #
-#  ## we choose bfgs with box constrained optimization
-#  println("covariates = ", selVar)
-#  sol = optimize(f, ∇f, lower, upper, μ₀, Fminbox(LBFGS()), Optim.Options(show_trace = true, show_every = 3, iterations=50, g_tol=1e-3); inplace=false)
+#
 #  println("ₘᵢₙ ℒ(α,β,θ) -> ", sol.minimum)
 #end

@@ -127,6 +127,25 @@ function logLikelihood(b::Biotope, selVar::Vector{Int64}, methodInt = GaussLegen
   return λ->-sum(log.([Integrals.solve(IntegralProblem(pdf_frailty(b,i,selVar), (0.0, Inf), λ), methodInt())[1] for i=1:b.N]))
 end
 
+"""
+in place function to compute f and/or ∇f if there are needeed
+"""
+function getfg!(b::Biotope, selVar::Vector{Int64})
+  function fg!(F, G, λ::Vector{Float64})
+    rtol=1.e-8  
+    Li = [quadgk(x->pdf_frailty(b,i,selVar)(x,λ), 0.0, Inf, rtol=rtol)[1] for i=1:b.N]
+    if G !== nothing
+      ∇Li =[quadgk(x->grad_pdf_frailty_check(b,i,selVar)(x,λ), 0.0, Inf, rtol=rtol)[1] for i=1:b.N]
+      G[:] = -sum(∇Li./Li)
+    end
+    if F !== nothing
+      F = -sum(log.(Li))
+      return F
+    end
+  end
+  return fg!
+end
+
 function grad_logLikelihood(b::Biotope, selVar::Vector{Int64}, methodInt = QuadGKJL)
     return λ->-sum([solve(IntegralProblem(grad_pdf_frailty_check(b, i, selVar), (0.0, Inf), λ), methodInt()).u ./
                    solve(IntegralProblem(pdf_frailty(b, i, selVar), (0.0, Inf), λ), methodInt())[1] for i=1:b.N])

@@ -34,6 +34,16 @@ end
     g_diff = FiniteDiff.finite_difference_gradient(logLikelihood(bio, selVar), μ₀)
     @test norm(g_ana-g_diff)/norm(g_diff) < 0.02
 
+    #test inplace fun and gradient computation
+    fg! = getfg!(bio, selVar)
+    lf = 0.
+    lg = zeros(length(μ₀))
+    lf = fg!(lf, lg, μ₀)
+    of = logLikelihood(bio, selVar)(μ₀)
+
+    @test lf ≈ of atol = 1e-10
+    @test norm(lg-g_ana) / norm(g_ana)  < 0.02
+
 end
 
 @testset "Gamma functions" begin

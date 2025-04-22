@@ -5,6 +5,7 @@ using DataFrames
 using CSV
 using FiniteDiff
 using Dates
+using Printf
 
 # read raw data
 df1 = CSV.read(joinpath(datapath,"survcalibfeb2024_1.csv"), DataFrame; delim=';', decimal=',');
@@ -36,13 +37,15 @@ sols = [Float64[] for _=1:2^nCov]
 fsols = zeros(2^nCov)
 gsols = zeros(2^nCov)
 errors = [ [1,2,3], [3,4] , [1, 2, 3, 4, 5], [2,3,4], [1,2,3,4], [5], [3,5], [4,5], [2,3,4,5]]
+@printf("| covariates |   f(x)    | |∇f(x)| |\n")
+
 for i=0:2^nCov-1
   selVar = findall(digits(i, base=2, pad=nCov).!=0)
   if (!(selVar in errors))
    nVar = length(selVar)
    fsol, sol, gsol = optimizeEskolZaharra(bio, selVar, 1+nVar, λ, -1, 1e7, 1e-6) ;
-   println("| $selVar | $fsol | $(norm(gsol))")
-   sols[i+1]= sol
+   @printf("| %s | %03.5f | %03.5f |\n", blanksPad(selVar,nCov) ,fsol, norm(gsol))
+   sols[i+1]= sol 
    fsols[i+1]= fsol
    gsols[i+1]= norm(gsol)
   else

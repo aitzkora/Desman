@@ -44,6 +44,11 @@ end
     @test lf ≈ of atol = 1e-10
     @test norm(lg-g_ana) / norm(g_ana)  < 0.02
 
+    #test with just gradient in place computation
+    g_in_place! = getg!(bio, selVar)
+    lg = zeros(length(μ₀))
+    g_in_place!(lg,μ₀)
+    @test norm(lg-g_ana) / norm(g_ana)  < 0.02
 end
 
 @testset "Gamma functions" begin

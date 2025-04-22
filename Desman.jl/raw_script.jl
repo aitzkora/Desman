@@ -1,10 +1,11 @@
+using Pkg
+Pkg.activate("/home/fux/iturriak/Desman_hub/Desman.jl");
+using Desman
 using DataFrames
 using CSV
-using Desman
 using FiniteDiff
-using Optim
 using Dates
-using LineSearches
+
 # read raw data
 df1 = CSV.read(joinpath(datapath,"survcalibfeb2024_1.csv"), DataFrame; delim=';', decimal=',');
 df2 = CSV.read(joinpath(datapath,"survcalibaug2024_1.csv"), DataFrame; delim=';', decimal=',');
@@ -30,23 +31,23 @@ using BenchmarkTools
 using LinearAlgebra
 using Test
 
-function optimSelVar(selVar, m)
-  fun! = getfg!(bio,selVar)
-  nVar= length(selVar)
-  lower = 1e-6.* [ones(3) ; ones(nVar)]
-  upper = Inf*[ones(3) ; ones(nVar)]
-  #linesearch = LineSearches.HagerZhang(linesearchmax = 20)
-  inner_optimize =  LBFGS(; m = m)
-  μ₀ = [λ; ones(size(selVar,1))]
-  sol = optimize(Optim.only_fg!(fun!), lower, upper, μ₀, Fminbox(inner_optimize), 
-                 Optim.Options(show_trace = true, show_every = 3, iterations=50, g_tol=1e-3, f_tol=1e-3); inplace=true)
-end 
-
-# nCov = size(bio.matCov,2)
-# for i=0:2^nCov-1
-# selVar = findall(digits(i, base=2, pad=nCov).!=0)
-#  selVar = [1,2]
-#  nVar = length(selVar)
-#
-#  println("ₘᵢₙ ℒ(α,β,θ) -> ", sol.minimum)
-#end
+nCov = size(bio.matCov,2)
+sols = [Float64[] for _=1:2^nCov]
+fsols = zeros(2^nCov)
+gsols = zeros(2^nCov)
+errors = [ [1,2,3], [3,4] , [1, 2, 3, 4, 5], [2,3,4], [1,2,3,4], [5], [3,5], [4,5], [2,3,4,5]]
+for i=0:2^nCov-1
+  selVar = findall(digits(i, base=2, pad=nCov).!=0)
+  if (!(selVar in errors))
+   nVar = length(selVar)
+   fsol, sol, gsol = optimizeEskolZaharra(bio, selVar, 1+nVar, λ, -1, 1e7, 1e-6) ;
+   println("| $selVar | $fsol | $(norm(gsol))")
+   sols[i+1]= sol
+   fsols[i+1]= fsol
+   gsols[i+1]= norm(gsol)
+  else
+   sols[i+1] = Float64[]
+   fsols[i+1] = Inf
+   gsols[i+1] = Inf
+  end
+end

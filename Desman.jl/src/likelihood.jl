@@ -6,11 +6,17 @@ using Integrals
 using SpecialFunctions
 
 function weibull_diff(σ::SubArray{T, 1, Matrix{T},Tuple{Int64,Vector{Int64}}, false}
-                      ,λ::Vector{T}, w::T, xd::T, xg::T) where {T<:Real}
+                     ,λ::Vector{T}, w::T, xd::T, xg::T) where {T<:Real}
   σ_γ=sum(σ.*λ[4:end]) # kontuz σ must be a linear form 1xn
   θ = w*(λ[1]+σ_γ)
   α = λ[2]
-  return exp(-(xd/θ)^α)-exp(-(xg/θ)^α)
+  fd =exp(-(xd/θ)^α)
+  if (xg <= 0.0)
+    fg = 0.0
+  else
+    fg = exp(-(xg/θ)^α)
+  end
+  return fd-fg
 end
 
 function grad_weibull(σ::SubArray{T, 1, Matrix{T},Tuple{Int64,Vector{Int64}}, false},

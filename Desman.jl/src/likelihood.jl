@@ -1,8 +1,6 @@
 using QuadGK
-using FastGaussQuadrature
 using DataFrames
 using Distributions
-using Integrals
 using SpecialFunctions
 
 function weibull_diff(σ::SubArray{T, 1, Matrix{T},Tuple{Int64,Vector{Int64}}, false}
@@ -126,11 +124,12 @@ function ∂ᵤΓh(u::T, w::T) where {T<:Real}
 end
 
 """
-logLikelihood(b::Biotope, selVar::Vector{Int64}, methodInt = GaussLegendre)
+logLikelihood(b::Biotope, selVar::Vector{Int64})
 computes the logLikelihood conditioned by a subset of covariates given by `selVar`
 """
-function logLikelihood(b::Biotope, selVar::Vector{Int64}, methodInt = GaussLegendre)
-  return λ->-sum(log.([Integrals.solve(IntegralProblem(pdf_frailty(b,i,selVar), (0.0, Inf), λ), methodInt())[1] for i=1:b.N]))
+function logLikelihood(b::Biotope, selVar::Vector{Int64})
+  rtol = 1.e-8
+  return λ->-sum(log.([quadgk(x->pdf_frailty(b,i,selVar)(x,λ), 0.0, Inf, rtol=rtol)[1] for i=1:b.N]))
 end
 
 """
@@ -162,16 +161,11 @@ function getg!(b::Biotope, selVar::Vector{Int64})
   return g!
 end
 
-function grad_logLikelihood(b::Biotope, selVar::Vector{Int64}, methodInt = QuadGKJL)
-    return λ->-sum([solve(IntegralProblem(grad_pdf_frailty_check(b, i, selVar), (0.0, Inf), λ), methodInt()).u ./
-                   solve(IntegralProblem(pdf_frailty(b, i, selVar), (0.0, Inf), λ), methodInt())[1] for i=1:b.N])
+function grad_logLikelihood(b::Biotope, selVar::Vector{Int64})
+ rtol=1.e-8
+ return λ->-sum([quadgk(x->grad_pdf_frailty_check(b, i, selVar)(x,λ), 0.0, Inf, rtol=rtol)[1] ./
+                 quadgk(x->pdf_frailty(b, i, selVar)(x,λ), 0.0, Inf,rtol=rtol)[1] for i=1:b.N])
 end
-
-function grad_logLikelihood_div(b::Biotope, selVar::Vector{Int64}, methodInt = QuadGKJL)
-  return λ->-sum([solve(IntegralProblem(grad_pdf_frailty(b, i, selVar), (0.0, Inf), λ), methodInt()).u ./
-                  solve(IntegralProblem(pdf_frailty(b, i, selVar), (0.0, Inf), λ), methodInt())[1] for i=1:b.N])
-end
-
 
 function logLikelihood(b::Biotope)
   logLikelihood(b, Int64[])

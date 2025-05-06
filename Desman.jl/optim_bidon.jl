@@ -4,13 +4,11 @@ using Libdl:dlopen, dlsym
 
 using Printf
 
+using N2QN1_jll
 function init_qnb()
    global n2qn1_ptr
-
-   qnb_lib = dlopen("/home/fux/iturriak/Desman_hub/Desman.jl/qnb.so")
-
+   qnb_lib = dlopen(libn2qnr)
    n2qn1_ptr = dlsym(qnb_lib, :n2qn1_)
-
 end
 
 function call_qnb!(x::Vector{Float64},
@@ -22,8 +20,8 @@ function call_qnb!(x::Vector{Float64},
                    imp::Int64,
                    io::Int64,
                    mode::Vector{Cint},
-                   iter::Int64,
-                   nsim::Int64,
+                   iter::Vector{Cint},
+                   nsim::Vector{Cint},
                    binf::Vector{Float64},
                    bsup::Vector{Float64},
                    iz::Vector{Cint},
@@ -41,8 +39,8 @@ function call_qnb!(x::Vector{Float64},
                              Ref{Cint},    # imp
                              Ref{Cint},    # io
                              Ptr{Cint},    # mode
-                             Ref{Cint},    # iter
-                             Ref{Cint},    # nsim
+                             Ptr{Cint},    # iter
+                             Ptr{Cint},    # nsim
                              Ptr{Float64}, # binf
                              Ptr{Float64}, # bsup
                              Ptr{Cint},    # iz
@@ -82,14 +80,14 @@ function bfgsb(f,g!, x0::Vector{Float64},
   mode = ones(Cint, 1)
   imp = 0
   it = 0
-  iter =  100
-  nsim=3*iter
+  iter =  Cint[60]
+  nsim=Cint[iter[1] + iter[1]÷2]
   iz = zeros(Cint, 1024) # why 1024
   rz = zeros(Float64, 1024)
-  io = 06  # descripteur de fichier du journal 06-> std output
+  io = 22  # descripteur de fichier du journal 06-> std output
   fk=df1
   g!(gk,x0)
-  epsabs = 5e-5*ones(1)*norm(gk)
+  epsabs = 3e-5*ones(1)*norm(gk)
   call_qnb!(xk, fk, gk, dxmin, df1, epsabs, imp, io, mode, iter, nsim, lb, ub, iz, rz, true)
   while (mode[1]>7 && it < max_iter)
     it += 1
@@ -98,15 +96,14 @@ function bfgsb(f,g!, x0::Vector{Float64},
     if (print_iter)
        @printf("| %05d | %.3e | %.3e |\n", it, fk, norm(gk))
     end
-    nsim=3*iter
     call_qnb!(xk, fk, gk, dxmin, df1, epsabs, imp,
               io, mode, iter, nsim, lb, ub, iz, rz, true)
   end
-  return fk, xk
+  return fk, xk, iter[1], nsim[1]
 end
 
 
-function optimizeINRIA(bio, selVar, m::Int64, λ, print::Int64 = -1, factr::Float64=1e7, lbval::Float64 = 1e-6)
+function optimizeINRIA(bio, selVar, m::Int64, λ, lbval::Float64 = 1e-6)
 
     f = logLikelihood(bio,selVar)
     nVar = length(selVar)
@@ -114,10 +111,10 @@ function optimizeINRIA(bio, selVar, m::Int64, λ, print::Int64 = -1, factr::Floa
     μ₀ = [λ; ones(nVar)]
     lb = lbval*[ones(3); ones(nVar)];
     ub = Inf*[ones(3) ; ones(nVar)];
-    fout, xout = bfgsb(f,g!,μ₀, lb, ub; print_iter=false)
+    fout, xout, it, sim = bfgsb(f,g!,μ₀, lb, ub; print_iter=false)
     gout = zeros(length(μ₀))
     g!(gout, xout)
-    return fout, xout, gout
+    return fout, xout, gout, it, sim
 end 
 
 

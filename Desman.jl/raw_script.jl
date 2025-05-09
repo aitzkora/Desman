@@ -39,14 +39,14 @@ selVars = [Int64[] for _=1:2^nCov]
 fsols = zeros(2^nCov)
 gsols = zeros(2^nCov)
 #errors = [ [1,2,3], [3,4] , [1, 2, 3, 4, 5], [2,3,4], [1,2,3,4], [5], [3,5], [4,5], [2,3,4,5]]
-errors = []
+errors = [ [4,5]]
 @printf("| covariates |   f(x)       | |∇f(x)| |  #it  |  #sim |\n")
 
 for i=0:2^nCov-1
   selVars[i+1] = findall(digits(i, base=2, pad=nCov).!=0)
   if (!(selVars[i+1] in errors))
    nVar = length(selVars[i+1])
-   fsol, sol, gsol, it, nsim = optimizeINRIA(bio, selVars[i+1], λ; lbval= 1e-6, ϵ = 5e-5)
+   fsol, sol, gsol, it, nsim = optimizeINRIA(bio, selVars[i+1], λ; lbval= 1e-6, ϵ = 5e-5, print_iter=false)
    @printf("| %s | %03.8f | %03.5f | %05d | %05d |\n", blanksPad(selVars[i+1],nCov) ,fsol, norm(gsol), it, nsim)
    sols[i+1]= sol 
    fsols[i+1]= fsol

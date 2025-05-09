@@ -17,7 +17,7 @@ function call_N2QN1R!(x::Vector{Float64}, f::Float64, g::Vector{Float64},
                    reverse::Bool)
     @assert length(x) == length(g) == length(bsup) == length(binf)
     n = length(x)
-    ccall(n2qn1_ptr, Cvoid, (Ref{Cint},    Ref{Float64}, Ref{Float64}, Ref{Float64}, # f, f, g
+    ccall(n2qn1_ptr, Cvoid, (Ref{Cint},    Ptr{Float64}, Ref{Float64}, Ptr{Float64}, # n, x, f, g
                              Ptr{Float64}, Ref{Float64}, Ptr{Float64}, # dxmin, df1, epsabs
                              Ref{Cint},    Ref{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, # imp, io, mode, iter, nsim   
                              Ptr{Float64}, Ptr{Float64}, Ptr{Cint}, Ptr{Float64}, Ref{Cint}), # binf, bsup, iz, rz, reverse
@@ -30,18 +30,17 @@ end
 
 function bfgsb(f,g!, x0::Vector{Float64}, lb::Vector{Float64}, ub::Vector{Float64};
                dxmin::Vector{Float64}=1e-12*ones(size(x0,1)), ϵ::Float64=1e-4, max_iter::Int64=300, print_iter::Bool=false)
-  # allocate 
+  n = length(x0)
   xk = copy(x0)
   gk = zeros(length(x0))
-  # init parameters
   df1 = f(x0)
   mode = ones(Cint, 1)
   imp = 0
   it = 0
   iter = Cint[max_iter]
-  nsim = Cint[iter[1] + iter[1]÷2] # nsim ≈ max_iter * 1.5
-  iz = zeros(Cint, 1024) # why 1024
-  rz = zeros(Float64, 1024)
+  nsim = Cint[3*iter[1]]
+  iz = zeros(Cint, 2n+1) 
+  rz = zeros(Float64, n*(n+9)÷2)
   if (print_iter) 
     imp = 1
     io = 6 
@@ -57,6 +56,7 @@ function bfgsb(f,g!, x0::Vector{Float64}, lb::Vector{Float64}, ub::Vector{Float6
     it += 1
     fk = f(xk)
     g!(gk, xk)
+    nsim=Cint(3).*iter
     if (print_iter)
        @printf("| %05d | %.3e | %.3e |\n", it, fk, norm(gk))
     end
@@ -67,14 +67,14 @@ function bfgsb(f,g!, x0::Vector{Float64}, lb::Vector{Float64}, ub::Vector{Float6
 end
 
 # proxy function calling the bfgs with variables of the project
-function optimizeINRIA(bio, selVar, λ; lbval::Float64 = 1e-6, ϵ::Float64=5e-5)
+function optimizeINRIA(bio, selVar, λ; lbval::Float64 = 1e-6, ϵ::Float64=5e-5, print_iter::Bool=false)
     f = logLikelihood(bio,selVar)
     nVar = length(selVar)
     g! = getg!(bio,selVar)
     μ₀ = [λ; ones(nVar)]
     lb = lbval*[ones(3); ones(nVar)];
     ub = Inf*[ones(3) ; ones(nVar)];
-    fout, xout, it, sim = bfgsb(f,g!,μ₀, lb, ub; print_iter=false, ϵ = ϵ) 
+    fout, xout, it, sim = bfgsb(f,g!,μ₀, lb, ub; print_iter=print_iter, ϵ = ϵ) 
     gout = zeros(length(μ₀))
     g!(gout, xout)
     return fout, xout, gout, it, sim

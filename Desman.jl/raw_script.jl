@@ -1,5 +1,5 @@
-using Pkg
-Pkg.activate("/home/fux/iturriak/Desman_hub/Desman.jl");
+#using Pkg
+#Pkg.activate("/home/fux/iturriak/Desman_hub/Desman.jl");
 using Desman
 using DataFrames
 using CSV
@@ -38,6 +38,7 @@ sols = [Float64[] for _=1:2^nCov]
 selVars = [Int64[] for _=1:2^nCov]
 fsols = zeros(2^nCov)
 gsols = zeros(2^nCov)
+AIC = zeros(2^nCov)
 #errors = [ [1,2,3], [3,4] , [1, 2, 3, 4, 5], [2,3,4], [1,2,3,4], [5], [3,5], [4,5], [2,3,4,5]]
 errors = [ [4,5]]
 @printf("| covariates |   f(x)       | |∇f(x)| |  #it  |  #sim |\n")
@@ -51,9 +52,11 @@ for i=0:2^nCov-1
    sols[i+1]= sol 
    fsols[i+1]= fsol
    gsols[i+1]= norm(gsol)
+   AIC[i+1]= 2*fsol + 2*nVar
   else
    sols[i+1] = Float64[]
    fsols[i+1] = Inf
    gsols[i+1] = Inf
+   AIC[i+1] = Inf
   end
 end

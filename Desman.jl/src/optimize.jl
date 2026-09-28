@@ -72,7 +72,7 @@ function optimizeINRIA(bio, selVar, λ; lbval::Float64 = 1e-6, ϵ::Float64=5e-5,
     nVar = length(selVar)
     g! = getg!(bio,selVar)
     μ₀ = [λ; ones(nVar)]
-    lb = lbval*[ones(3); ones(nVar)];
+    lb = [lbval*ones(3); -Inf*ones(nVar)];
     ub = Inf*[ones(3) ; ones(nVar)];
     fout, xout, it, sim = bfgsb(f,g!,μ₀, lb, ub; print_iter=print_iter, ϵ = ϵ) 
     gout = zeros(length(μ₀))

@@ -5,8 +5,8 @@ using SpecialFunctions
 
 function weibull_diff(σ::SubArray{T, 1, Matrix{T},Tuple{Int64,Vector{Int64}}, false}
                      ,λ::Vector{T}, w::T, xd::T, xg::T) where {T<:Real}
-  σ_γ=sum(σ.*λ[4:end]) # kontuz σ must be a linear form 1xn
-  θ = w*(λ[1]+σ_γ)
+  σ_γ=exp(sum(σ.*λ[4:end])) # kontuz σ must be a linear form 1xn
+  θ = w*λ[1]*σ_γ
   α = λ[2]
   fd =exp(-(xd/θ)^α)
   if (xg <= 0.0)
@@ -19,11 +19,11 @@ end
 
 function grad_weibull(σ::SubArray{T, 1, Matrix{T},Tuple{Int64,Vector{Int64}}, false},
                       λ::Vector{T}, w::T, xd::T, xg::T) where {T<:Real}
-  σ_γ=sum(σ.*λ[4:end])
-  θ = w*(λ[1]+σ_γ)
+  σ_γ=exp(sum(σ.*λ[4:end]))
+  θ = w*λ[1]*σ_γ
   α = λ[2]
   g = zeros(3+length(λ[4:end]))
-  g[1] = (exp(-(xd/θ)^α)*α*(xd/θ)^α/θ)*w
+  g[1] = (exp(-(xd/θ)^α)*α*(xd/θ)^α/θ)*w*σ_γ
   if (xd != 0.0)
     g[2] = (-exp(-(xd/θ)^α)*(xd/θ)^α*log(xd/θ))
   else
@@ -38,7 +38,7 @@ function grad_weibull(σ::SubArray{T, 1, Matrix{T},Tuple{Int64,Vector{Int64}}, f
     end
   end
   g[3] = zero(T)
-  g[4:end]= g[1] .* σ[:]
+  g[4:end]= σ_γ * g[1] .* σ[:]
   return g
 end
 

@@ -9,9 +9,11 @@ using Printf
 using LinearAlgebra
 
 # read raw data
-df1 = CSV.read(joinpath(datapath,"survcalibfeb2024_1.csv"), DataFrame; delim=';', decimal=',');
-df2 = CSV.read(joinpath(datapath,"survcalibaug2024_1.csv"), DataFrame; delim=';', decimal=',');
-df  = vcat(df1, df2, cols=:union)
+# df1 = CSV.read(joinpath(datapath,"survcalibfeb2024_1.csv"), DataFrame; delim=';', decimal=',');
+# df = CSV.read(joinpath(datapath,"survcalibfeb2024_1.csv"), DataFrame; delim=';', decimal=',');
+# df2 = CSV.read(joinpath(datapath,"survcalibaug2024_1.csv"), DataFrame; delim=';', decimal=',');
+df = CSV.read(joinpath(datapath,"survcalibaug2024_1.csv"), DataFrame; delim=';', decimal=',');
+# df  = vcat(df1, df2, cols=:union)
 
 # convert string to float and NA to Inf
 df.durationg =(x->(x=="NA") ? Inf : parse(Float64,replace(x, "," => "."))).(df[:,:durationg])
@@ -40,7 +42,7 @@ fsols = zeros(2^nCov)
 gsols = zeros(2^nCov)
 AIC = zeros(2^nCov)
 #errors = [ [1,2,3], [3,4] , [1, 2, 3, 4, 5], [2,3,4], [1,2,3,4], [5], [3,5], [4,5], [2,3,4,5]]
-errors = [ [1,2,3]]
+errors = []
 @printf("| covariates | AIC(x)       | |∇f(x)| |  #it  |  #sim |\n")
 
 _, sol₀, _ , _, _ = optimizeINRIA(bio, selVars[1], λ; lbval= 1e-6, ϵ = 5e-5, print_iter=false)

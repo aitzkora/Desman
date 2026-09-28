@@ -79,8 +79,9 @@ end
    σ = view(collect(rand(nvar,1)'),1,collect([1:nvar;]))
    w = (rand(1)*10 .+ 10)[1]
    λ = rand(3+nvar)
-   xd = rand(1)[1]
    xg = rand(1)[1]
+   xd = xg + rand(1)[1]
+
    @test FiniteDiff.finite_difference_gradient(x->weibull_diff(σ,x, w, xg, xd), λ) ≈ grad_weibull(σ, λ, w, xg, xd) atol=1e-10
 
 

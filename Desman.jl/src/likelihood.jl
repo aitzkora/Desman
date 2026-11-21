@@ -78,25 +78,6 @@ pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}) = pdf_frailty(bio, i,
 
 function grad_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Type{T}) where {T<:Real}
   function proxyGrad(w::T, λ::Vector{T})
-    idx = collect([bio.covStart:bio.covEnd;])
-    p_wei = prod_weibull(bio, i, selVar, w, λ)
-    ∂pdf = zeros(size(λ))
-    for (jj, j) in enumerate(bio.idxLat[i])
-        σ = view(bio.matCov, j, selVar)
-        p_exclu_j = p_wei ./ weibull_diff(σ, λ, w, T(bio.durd[j]), T(bio.durg[j])) # bad! 
-        ∂pdf += p_exclu_j .* grad_weibull(σ, λ, w, T(bio.durd[j]), T(bio.durg[j]))
-    end 
-    ∂pdf *= Γh(λ[3], w)
-    ∂pdf[3] = p_wei * ∂ᵤΓh(λ[3], w)
-    return ∂pdf
-  end
-  return proxyGrad
-end
-
-grad_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}) =  grad_pdf_frailty(bio, i, selVar, Float64)
-
-function grad_pdf_frailty_check(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Type{T}) where {T<:Real}
-  function proxyGrad(w::T, λ::Vector{T})
     p_wei = prod_weibull(bio, i, selVar, w, λ)
     ∂pdf = zeros(size(λ))
     for (jj, j) in enumerate(bio.idxLat[i])
@@ -110,13 +91,9 @@ function grad_pdf_frailty_check(bio::Biotope, i::Int64, selVar::Vector{Int64}, :
   return proxyGrad
 end
 
-grad_pdf_frailty_check(bio::Biotope, i::Int64, selVar::Vector{Int64}) =  grad_pdf_frailty_check(bio, i, selVar, Float64)
+grad_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}) =  grad_pdf_frailty(bio, i, selVar, Float64)
 
-
-
-function hessian_pdf_check(bio::Biotope,  i::Int64, selVar::Vector{Int64}, ::Type{T}) where {T<:Real}
-  
-
+function hessian_pdf(bio::Biotope,  i::Int64, selVar::Vector{Int64}, ::Type{T}) where {T<:Real}
 
 end
 
@@ -161,7 +138,7 @@ function getfg!(b::Biotope, selVar::Vector{Int64})
     rtol=1.e-8  
     Li = [quadgk(x->pdf_frailty(b,i,selVar)(x,λ), 0.0, Inf, rtol=rtol)[1] for i=1:b.N]
     if G !== nothing
-      ∇Li =[quadgk(x->grad_pdf_frailty_check(b,i,selVar)(x,λ), 0.0, Inf, rtol=rtol)[1] for i=1:b.N]
+      ∇Li =[quadgk(x->grad_pdf_frailty(b,i,selVar)(x,λ), 0.0, Inf, rtol=rtol)[1] for i=1:b.N]
       G[:] = -sum(∇Li./Li)
     end
     if F !== nothing
@@ -176,7 +153,7 @@ function getg!(b::Biotope, selVar::Vector{Int64})
   function g!(G, λ::Vector{Float64})
     rtol=1.e-8  
     Li = [quadgk(x->pdf_frailty(b,i,selVar)(x,λ), 0.0, Inf, rtol=rtol)[1] for i=1:b.N]
-    ∇Li =[quadgk(x->grad_pdf_frailty_check(b,i,selVar)(x,λ), 0.0, Inf, rtol=rtol)[1] for i=1:b.N]
+    ∇Li =[quadgk(x->grad_pdf_frailty(b,i,selVar)(x,λ), 0.0, Inf, rtol=rtol)[1] for i=1:b.N]
     G[:] = -sum(∇Li./Li)
   end
   return g!
@@ -184,7 +161,7 @@ end
 
 function grad_logLikelihood(b::Biotope, selVar::Vector{Int64})
  rtol=1.e-8
- return λ->-sum([quadgk(x->grad_pdf_frailty_check(b, i, selVar)(x,λ), 0.0, Inf, rtol=rtol)[1] ./
+ return λ->-sum([quadgk(x->grad_pdf_frailty(b, i, selVar)(x,λ), 0.0, Inf, rtol=rtol)[1] ./
                  quadgk(x->pdf_frailty(b, i, selVar)(x,λ), 0.0, Inf,rtol=rtol)[1] for i=1:b.N])
 end
 

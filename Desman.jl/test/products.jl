@@ -1,0 +1,10 @@
+bio, _ = fixture()
+selVar = [2,3,4]
+nvar = length(selVar)
+i = 15
+j = bio.idxLat[i][end]
+λ = rand(3+nvar)
+w = (rand(1)*20 .+ 15)[1]
+idx = collect([bio.covStart:bio.covEnd;])
+σ = view(bio.matCov, j, selVar)
+@test prod_weibull_exclude(bio, i, selVar, w, λ, j) ≈ prod_weibull(bio, i, selVar, w, λ) ./ weibull_diff(σ, λ, w, bio.durd[j], bio.durg[j]) atol=1e-10

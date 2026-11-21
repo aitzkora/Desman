@@ -1,14 +1,21 @@
 module Desman
 
 using DataFrames
-export Biotope, logLikelihood, pdf_frailty, logLikelihood2, prod_weibull, weibull_diff,
-       grad_pdf_frailty, Γh, ∂ᵤΓh, grad_logLikelihood, grad_weibull, grad_pdf_frailty_check, prod_weibull_exclude,
-       prod_weibull_view, pdf_frailty_view, grad_logLikelihood_div, getfg!, getg!, blanksPad, optimizeINRIA
-  
-
+                
+export Biotope
 include("biotope.jl")
+
+# Likelihood related stuff
+export logLikelihood, pdf_frailty, logLikelihood2, prod_weibull, weibull_diff, grad_pdf_frailty, grad_logLikelihood, grad_weibull, 
+	   Γh, ∂ᵤΓh, ∂²ᵤᵤΓh, prod_weibull_exclude, prod_weibull_view, pdf_frailty_view, grad_logLikelihood_div, getfg!, getg!
 include("likelihood.jl")
+
+# optimization algos
+export optimizeINRIA
 include("optimize.jl")
+
+# Miscellanous
+export blanksPad
 include("misc.jl")
 
 # code called at the beginning of the import

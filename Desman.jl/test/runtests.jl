@@ -6,6 +6,7 @@ using Distributions
 using SpecialFunctions 
 using FiniteDiff
 using LinearAlgebra
+
 # internal function to build data in common between tests
 function fixture()
   df1 = CSV.read(joinpath(datapath,"survcalibfeb2024_1.csv"), DataFrame; delim=';', decimal=',');
@@ -22,94 +23,28 @@ function fixture()
   return bio, λ
 end
 
-@testset "likelihood-λ" begin
-    # compare logLikelihood to R result
-    bio, λ = fixture()
-    @test logLikelihood(bio, Int64[])(exp.(λ)) ≈  936.14681223 atol = 1e-5
 
-    # gradient check up to 2%
-    selVar = [1,2]
-    μ₀ = [λ; ones(length(selVar))]
-    g_ana =  grad_logLikelihood(bio, selVar)(μ₀) 
-    g_diff = FiniteDiff.finite_difference_gradient(logLikelihood(bio, selVar), μ₀)
-    @test norm(g_ana-g_diff)/norm(g_diff) < 0.02
+function exec_tests(args)
+  nArgs = length(args)
+  test_files = ["likelihood-λ",
+                "Γ-functions",
+                "products",
+                "gradients" ]
 
-    #test inplace fun and gradient computation
-    fg! = getfg!(bio, selVar)
-    lf = 0.
-    lg = zeros(length(μ₀))
-    lf = fg!(lf, lg, μ₀)
-    of = logLikelihood(bio, selVar)(μ₀)
-
-    @test lf ≈ of atol = 1e-10
-    @test norm(lg-g_ana) / norm(g_ana)  < 0.02
-
-    #test with just gradient in place computation
-    g_in_place! = getg!(bio, selVar)
-    lg = zeros(length(μ₀))
-    g_in_place!(lg,μ₀)
-    @test norm(lg-g_ana) / norm(g_ana)  < 0.02
+  if nArgs != 0  
+     if ARGS[1] in test_files
+       test_files = [ARGS[1]]
+     else
+       @error "test suite must ∈ $(test_files)"
+       return nothing # manage correctly aborting execution 
+     end
+  end
+  for tst in test_files
+     @testset "$tst" begin
+       include("$(tst).jl")
+     end    
+  end
 end
 
-@testset "Gamma functions" begin
-   @test pdf(Gamma(3.33, 1. /3.33), 54.) ≈ Γh(3.33, 54.) atol=1e-8
-   @test ∂ᵤΓh(3.2,5.1) ≈ (-0.00011584186052754) atol=1e-15
-end
-
-@testset "Products" begin
-
-   bio, _ = fixture()
-   selVar = [2,3,4]
-   nvar = length(selVar)
-   i = 15
-   j = bio.idxLat[i][end]
-   λ = rand(3+nvar)
-   w = (rand(1)*20 .+ 15)[1]
-   idx = collect([bio.covStart:bio.covEnd;])
-   σ = view(bio.matCov, j, selVar)
-   @test prod_weibull_exclude(bio, i, selVar, w, λ, j) ≈ prod_weibull(bio, i, selVar, w, λ) ./ weibull_diff(σ, λ, w, bio.durd[j], bio.durg[j]) atol=1e-10
-
-end
-
-
-@testset "Gradients" begin
-   # weibull
-
-   nvar = 5
-   σ = view(collect(rand(nvar,1)'),1,collect([1:nvar;]))
-   w = (rand(1)*10 .+ 10)[1]
-   λ = rand(3+nvar)
-   xg = rand(1)[1]
-   xd = xg + rand(1)[1]
-
-   @test FiniteDiff.finite_difference_gradient(x->weibull_diff(σ,x, w, xg, xd), λ) ≈ grad_weibull(σ, λ, w, xg, xd) atol=1e-10
-
-
-   # take into account some special values for xd or xg
-   @test isfinite(norm(grad_weibull(σ, λ, w, 0.0, xg)))
-   @test isfinite(norm(grad_weibull(σ, λ, w, xd, 0.0)))
-   @test isfinite(norm(grad_weibull(σ, λ, w, xd, Inf)))
-
-   # pdf_frailty
-  
-   bio, λ = fixture()
-   i = 12
-   selVar = [3,4];
-   γ = rand(2)
-   g = pdf_frailty(bio, i, selVar)
-   w = w
-   μ = [λ;γ]
-   @test FiniteDiff.finite_difference_gradient(x->g(w,x), μ) ≈ grad_pdf_frailty(bio,i, selVar)(w, μ) atol=1e-10
-
-   # pdf_frailty_check
-   bio, λ = fixture()
-   i = 12
-   selVar = [3,4];
-   γ = rand(2)
-   g = pdf_frailty(bio, i, selVar)
-   w = (rand(1)*10 .+ 10)[1]
-   w = w
-   μ = [λ;γ]
-   @test grad_pdf_frailty(bio,i, selVar)(w, μ) ≈ grad_pdf_frailty(bio,i, selVar)(w, μ) atol=1e-10
-
-end  
+# do the exec trough a function
+exec_tests(ARGS)

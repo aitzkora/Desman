@@ -7,4 +7,4 @@ j = bio.idxLat[i][end]
 w = (rand(1)*20 .+ 15)[1]
 idx = collect([bio.covStart:bio.covEnd;])
 σ = view(bio.matCov, j, selVar)
-@test prod_weibull_exclude(bio, i, selVar, w, λ, j) ≈ prod_weibull(bio, i, selVar, w, λ) ./ weibull_diff(σ, λ, w, bio.durd[j], bio.durg[j]) atol=1e-10
+@test prod_diff_exclude(weibull_diff,bio, i, selVar, w, λ, j) ≈ prod_diff(weibull_diff, bio, i, selVar, w, λ) ./ weibull_diff(σ, λ, w, bio.durd[j], bio.durg[j]) atol=1e-10

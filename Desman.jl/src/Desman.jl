@@ -1,13 +1,27 @@
 module Desman
 
-using DataFrames
-                
+# Desmanen komunei buruzko informazioa 😉
 export Biotope
 include("biotope.jl")
 
-# Likelihood related stuff
-export logLikelihood, pdf_frailty, logLikelihood2, prod_weibull, weibull_diff, grad_pdf_frailty, grad_logLikelihood, grad_weibull, 
-	   Γh, ∂ᵤΓh, ∂²ᵤᵤΓh, prod_weibull_exclude, prod_weibull_view, pdf_frailty_view, grad_logLikelihood_div, getfg!, getg!
+# weibull functions
+export weibull_diff, grad_weibull
+include("weibull.jl")
+
+# product functions
+export prod_diff_exclude, prod_diff
+include("products.jl")
+
+# Γ related functions
+export Γh, ∂ᵤΓh, ∂²ᵤᵤΓh
+include("Γ-functions.jl")
+
+# frailty functions
+export pdf_frailty, grad_pdf_frailty
+include("frailty.jl")
+
+# likelihood related stuff
+export logLikelihood, grad_logLikelihood, getfg!, getg!
 include("likelihood.jl")
 
 # optimization algos

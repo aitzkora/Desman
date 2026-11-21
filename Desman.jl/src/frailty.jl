@@ -23,7 +23,7 @@ function grad_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Type{
     ∂pdf = zeros(size(λ))
     for (jj, j) in enumerate(bio.idxLat[i])
         σ = view(bio.matCov, j, selVar)
-        ∂pdf += prod_diff_exclude(weibull_diff, bio, i, selVar, w, λ, j) .* grad_weibull(σ, λ, w, T(bio.durd[j]), T(bio.durg[j]))
+        ∂pdf += prod_diff_exclude(weibull_diff, bio, i, selVar, w, λ, j) .* grad_weibull_diff(σ, λ, w, T(bio.durd[j]), T(bio.durg[j]))
     end 
     ∂pdf *= Γh(λ[3], w)
     ∂pdf[3] = p_wei * ∂ᵤΓh(λ[3], w)

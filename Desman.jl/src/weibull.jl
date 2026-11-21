@@ -12,7 +12,7 @@ function weibull_diff(σ::SubArray{T, 1, Matrix{T},Tuple{Int64,Vector{Int64}}, f
   return fd-fg
 end
 
-function grad_weibull(σ::SubArray{T, 1, Matrix{T},Tuple{Int64,Vector{Int64}}, false},
+function grad_weibull_diff(σ::SubArray{T, 1, Matrix{T},Tuple{Int64,Vector{Int64}}, false},
                       λ::Vector{T}, w::T, xd::T, xg::T) where {T<:Real}
   σ_γ=exp(sum(σ.*λ[4:end]))
   θ = w*λ[1]*σ_γ

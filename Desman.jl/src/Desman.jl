@@ -5,7 +5,7 @@ export Biotope
 include("biotope.jl")
 
 # weibull functions
-export weibull_diff, grad_weibull
+export weibull_diff, grad_weibull_diff
 include("weibull.jl")
 
 # product functions

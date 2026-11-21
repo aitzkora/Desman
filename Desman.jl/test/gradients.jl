@@ -7,13 +7,13 @@ w = (rand(1)*10 .+ 10)[1]
 xg = rand(1)[1]
 xd = xg + rand(1)[1]
 
-@test FiniteDiff.finite_difference_gradient(x->weibull_diff(σ,x, w, xg, xd), λ) ≈ grad_weibull(σ, λ, w, xg, xd) atol=1e-10
+@test FiniteDiff.finite_difference_gradient(x->weibull_diff(σ,x, w, xg, xd), λ) ≈ grad_weibull_diff(σ, λ, w, xg, xd) atol=1e-10
 
 
 # take into account some special values for xd or xg
-@test isfinite(norm(grad_weibull(σ, λ, w, 0.0, xg)))
-@test isfinite(norm(grad_weibull(σ, λ, w, xd, 0.0)))
-@test isfinite(norm(grad_weibull(σ, λ, w, xd, Inf)))
+@test isfinite(norm(grad_weibull_diff(σ, λ, w, 0.0, xg)))
+@test isfinite(norm(grad_weibull_diff(σ, λ, w, xd, 0.0)))
+@test isfinite(norm(grad_weibull_diff(σ, λ, w, xd, Inf)))
 
 # pdf_frailty
 

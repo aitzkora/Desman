@@ -61,6 +61,7 @@ function prod_weibull_exclude(bio::Biotope, i::Int64, selVar::Vector{Int64}, w::
   return z
 end
 
+
 """
 pdf_frailty(bio, i, selVar)
 computes the density of the `i`-th latrine against the `selVar` collection of covariates
@@ -82,7 +83,7 @@ function grad_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Type{
     ∂pdf = zeros(size(λ))
     for (jj, j) in enumerate(bio.idxLat[i])
         σ = view(bio.matCov, j, selVar)
-        p_exclu_j = p_wei ./ weibull_diff(σ, λ, w, T(bio.durd[j]), T(bio.durg[j]))
+        p_exclu_j = p_wei ./ weibull_diff(σ, λ, w, T(bio.durd[j]), T(bio.durg[j])) # bad! 
         ∂pdf += p_exclu_j .* grad_weibull(σ, λ, w, T(bio.durd[j]), T(bio.durg[j]))
     end 
     ∂pdf *= Γh(λ[3], w)
@@ -111,6 +112,14 @@ end
 
 grad_pdf_frailty_check(bio::Biotope, i::Int64, selVar::Vector{Int64}) =  grad_pdf_frailty_check(bio, i, selVar, Float64)
 
+
+
+function hessian_pdf_check(bio::Biotope,  i::Int64, selVar::Vector{Int64}, ::Type{T}) where {T<:Real}
+  
+
+
+end
+
 """
 Γh is a optimized version of x->pdf(Gamma(u,1/u),x)
 Γh(3.4,5.2) -> 25.503 ns (0 allocations: 0 bytes)
@@ -120,9 +129,20 @@ function Γh(u::T, w::T) where {T<:Real}
   return w^(u-1)*exp(-w*u)*u^u/gamma(u)
 end 
 
+"""
+∂ᵤΓh : computes the derivative respect to u of the pdf of Γ(u,1/u)
+"""
 function ∂ᵤΓh(u::T, w::T) where {T<:Real}
   return Γh(u,w)*(log(w*u)-w-digamma(u)+1)
 end
+
+"""
+∂²ᵤᵤΓh : computes the second derivative respect to u of the pdf of Γ(u,1/u)
+"""
+function ∂²ᵤᵤΓh(u::T, w::T) where {T<:Real}
+  return ∂ᵤΓh(u::T, w::T)*(log(w*u)-w-digamma(u)+1) +Γh(u,w)*(1/u-trigamma(u))
+end
+
 
 """
 logLikelihood(b::Biotope, selVar::Vector{Int64})
@@ -134,7 +154,7 @@ function logLikelihood(b::Biotope, selVar::Vector{Int64})
 end
 
 """
-in place function to compute f and/or ∇f if there are needeed
+in-place function to compute f and/or ∇f if there are needed
 """
 function getfg!(b::Biotope, selVar::Vector{Int64})
   function fg!(F, G, λ::Vector{Float64})

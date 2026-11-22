@@ -1,11 +1,14 @@
 module Desman
 
+using Infiltrator
+using Revise
+
 # Desmanen komunei buruzko informazioa 😉
 export Biotope
 include("biotope.jl")
 
 # weibull functions
-export weibull_diff, grad_weibull_diff
+export weibull_diff, grad_weibull_diff, hessian_weibull_diff
 include("weibull.jl")
 
 # product functions

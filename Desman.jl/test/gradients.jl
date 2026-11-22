@@ -1,3 +1,4 @@
+using ForwardDiff
 # weibull
 
 nvar = 5
@@ -9,6 +10,7 @@ xd = xg + rand(1)[1]
 
 @test FiniteDiff.finite_difference_gradient(x->weibull_diff(σ,x, w, xg, xd), λ) ≈ grad_weibull_diff(σ, λ, w, xg, xd) atol=1e-10
 
+@test ForwardDiff.hessian(x->weibull_diff(σ,x, w, xg, xd),λ) ≈ hessian_weibull_diff(σ, λ, w, xg, xd) atol=1e-10
 
 # take into account some special values for xd or xg
 @test isfinite(norm(grad_weibull_diff(σ, λ, w, 0.0, xg)))

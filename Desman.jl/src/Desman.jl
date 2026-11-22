@@ -20,7 +20,7 @@ export Γh, ∂ᵤΓh, ∂²ᵤᵤΓh
 include("Γ-functions.jl")
 
 # frailty functions
-export pdf_frailty, grad_pdf_frailty
+export pdf_frailty, grad_pdf_frailty, hessian_pdf_frailty
 include("frailty.jl")
 
 # likelihood related stuff

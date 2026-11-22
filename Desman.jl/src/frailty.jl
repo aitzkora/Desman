@@ -20,7 +20,7 @@ computes the derivativ of the density of the `i`-th latrine against the `selVar`
 function grad_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Type{T}) where {T<:Real}
   function proxyGrad(w::T, λ::Vector{T})
     p_wei = prod_diff(weibull_diff, bio, i, selVar, w, λ)
-    ∂pdf = zeros(size(λ))
+    ∂pdf = zeros(T, size(λ))
     for (jj, j) in enumerate(bio.idxLat[i])
         σ = view(bio.matCov, j, selVar)
         ∂pdf += prod_diff_exclude(weibull_diff, bio, i, selVar, w, λ, j) .* grad_weibull_diff(σ, λ, w, T(bio.durd[j]), T(bio.durg[j]))
@@ -34,6 +34,36 @@ end
 
 grad_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}) =  grad_pdf_frailty(bio, i, selVar, Float64)
 
-function hessian_pdf(bio::Biotope,  i::Int64, selVar::Vector{Int64}, ::Type{T}) where {T<:Real}
 
+"""
+compute the hessian of the frailty function (under the ∫ symbol)
+"""
+function hessian_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Type{T}) where {T<:Real}
+  function proxyHessian(w::T, λ::Vector{T})
+    n = size(λ,1)
+    ∇²pdf = zeros(T,n, n)
+    # first the ∂²₃pdf...
+    p_wei = prod_diff(weibull_diff, bio, i, selVar, w, λ)
+    ∇²pdf[3,3] = p_wei * ∂²ᵤᵤΓh(λ[3], w) 
+    # gero ∂²μᵢμ₃
+    ∂pdf = zeros(T, size(λ))
+    for j in bio.idxLat[i]
+      σ = view(bio.matCov, j, selVar)
+      ∂pdf += prod_diff_exclude(weibull_diff, bio, i, selVar, w, λ, j) .* grad_weibull_diff(σ, λ, w, T(bio.durd[j]), T(bio.durg[j]))
+      ∇²pdf += prod_diff_exclude(weibull_diff, bio, i, selVar, w, λ, j) .* hessian_weibull_diff(σ, λ, w, T(bio.durd[j]), T(bio.durg[j]))
+      accu=zeros(T,n,n)
+      for k in bio.idxLat[i]
+	    if (k!=j)
+           accu += prod_diff_exclude(weibull_diff, bio, i, selVar, w, λ, k) .* grad_weibull_diff(σ, λ, w, T(bio.durd[j]), T(bio.durg[j])) * grad_weibull_diff(σ, λ, w, T(bio.durd[k]), T(bio.durg[k]))'
+        end
+      end
+      ∇²pdf += accu 
+    end 
+    ∇²pdf *= Γh(λ[3], w)
+	∂pdf *= ∂ᵤΓh(λ[3], w)
+    ∇²pdf[3,:] = ∂pdf 
+    ∇²pdf[:,3] = ∂pdf 
+    return ∇²pdf 
+  end
+  return proxyHessian
 end

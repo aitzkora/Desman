@@ -49,48 +49,25 @@ function grad_weibull_diff(σ::SubArray{T, 1, Matrix{T},Tuple{Int64,Vector{Int64
 end
 
 """
-computes ∇²ᵤG = [∂μ1(∂μ1G), ∂α(∂μ1)G, 0,   ∂z(∂μ1G)
-                  ∂μ1(∂αG),      ∂α²G, 0,   ∂z(∂αG)
-                         0,         0, 0,        0
-                  ∂μ1(∂zG),   ∂α(∂zG), 0,     ∂z²G]
+computes ∇²ᵤG = 
+|∂μ1(∂μ1G) | ∂α(∂μ1)G | 0|   ∂z(∂μ1G) | 
+|  ∂μ1(∂αG)|      ∂α²G| 0|   ∂z(∂αG)  |
+|         0|         0| 0|        0   |
+|  ∂μ1(∂zG)|   ∂α(∂zG)| 0|     ∂z²G   |
 with analytical formulas : some bench
-julia> @benchmark hessian_weibull_diff(σ, λ, w, xg, xd)
-BenchmarkTools.Trial: 10000 samples with 10 evaluations per sample.
- Range (min … max):  1.761 μs … 694.316 μs  ┊ GC (min … max):  0.00% … 98.53%
- Time  (median):     1.857 μs               ┊ GC (median):     0.00%
- Time  (mean ± σ):   2.441 μs ±  16.341 μs  ┊ GC (mean ± σ):  17.50% ±  2.61%
+- @benchmark hessian_weibull_diff(σ, λ, w, xg, xd)
+  - Time  (mean ± σ):   2.441 μs ±  16.341 μs  
+  - Memory estimate: 2.62 KiB, allocs estimate: 41.
 
-  ▅██▆▅▄▄▃▃▂▁▁▁▁▁▁                                            ▂
-  ██████████████████████▇▆▇▇▇▆▄▆▅▅▇▅▃▄▄▅▅▅▅▆▆▅▆▆▇███████▇▇▆▆▆ █
-  1.76 μs      Histogram: log(frequency) by time       3.9 μs <
+- @benchmark FiniteDiff.finite_difference_hessian(g,λ)
+  - Time  (mean ± σ):   50.454 μs ± 200.699 μs  
+  - Memory estimate: 32.45 KiB, allocs estimate: 911.
 
- Memory estimate: 2.62 KiB, allocs estimate: 41.
-
-julia> @benchmark FiniteDiff.finite_difference_hessian(g,λ)
-BenchmarkTools.Trial: 10000 samples with 1 evaluation per sample.
- Range (min … max):  42.135 μs …   7.408 ms  ┊ GC (min … max):  0.00% … 98.51%
- Time  (median):     43.051 μs               ┊ GC (median):     0.00%
- Time  (mean ± σ):   50.454 μs ± 200.699 μs  ┊ GC (mean ± σ):  11.14% ±  2.78%
-
-  ▇█▆▅▅▃▂▂▂▂▂▂▁▁▁▁                                             ▂
-  ██████████████████████▇▇▇▇▆▅▆▅▆▆▆▄▅▅▅▅▅▄▄▅▃▄▅▅▄▄▄▃▅▃▄▃▄▅▄▆▄▅ █
-  42.1 μs       Histogram: log(frequency) by time      73.6 μs <
-
- Memory estimate: 32.45 KiB, allocs estimate: 911.
-
-julia> @benchmark ForwardDiff.hessian(g,λ)
-BenchmarkTools.Trial: 10000 samples with 4 evaluations per sample.
- Range (min … max):   7.749 μs … 828.146 μs  ┊ GC (min … max):  0.00% … 87.53%
- Time  (median):      8.418 μs               ┊ GC (median):     0.00%
- Time  (mean ± σ):   10.723 μs ±  38.284 μs  ┊ GC (mean ± σ):  17.13% ±  4.76%
-
-      ▄▆█▆▃
-  ▁▁▃▇██████▆▅▄▃▃▃▃▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
-  7.75 μs         Histogram: frequency by time         13.1 μs <
-
- Memory estimate: 19.32 KiB, allocs estimate: 18.
-=> analytical method is faster than other
-FIXME : why it has more allocation than ForwardDiff
+- @benchmark ForwardDiff.hessian(g,λ)
+  - Time  (mean ± σ):   10.723 μs ±  38.284 μs  
+  - Memory estimate: 19.32 KiB, allocs estimate: 18.
+- => analytical method is faster than other
+- FIXME : why it has more allocation than ForwardDiff
 """
 function hessian_weibull_diff(σ::SubArray{T, 1, Matrix{T},Tuple{Int64,Vector{Int64}}, false},
                       μ::Vector{T}, w::T, xd::T, xg::T) where {T<:Real}
@@ -118,10 +95,6 @@ function hessian_weibull_diff(σ::SubArray{T, 1, Matrix{T},Tuple{Int64,Vector{In
   g1d = fd*α*(xd/θ)^α*∂₁θ/θ
   g1g = fg*α*(xg/θ)^α*∂₁θ/θ
   
-
-
-
-
   # upper left value
   H[1,1]     = g1d * α*(xd/θ)^α               * ∂₁θ/θ - 
                 fd * α*α*(xd/θ)^α*∂₁θ/θ       * ∂₁θ/θ - 

@@ -44,7 +44,6 @@ function hessian_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Ty
     ∇²pdf = zeros(T,n, n)
     # first the ∂²₃pdf...
     p_wei = prod_diff(weibull_diff, bio, i, selVar, w, λ)
-    ∇²pdf[3,3] = p_wei * ∂²ᵤᵤΓh(λ[3], w) 
     # gero ∂²μᵢμ₃
     ∂pdf = zeros(T, size(λ))
     for j in bio.idxLat[i]
@@ -54,7 +53,7 @@ function hessian_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Ty
       accu=zeros(T,n,n)
       for k in bio.idxLat[i]
 	    if (k!=j)
-           accu += prod_diff_exclude(weibull_diff, bio, i, selVar, w, λ, k) .* grad_weibull_diff(σ, λ, w, T(bio.durd[j]), T(bio.durg[j])) * grad_weibull_diff(σ, λ, w, T(bio.durd[k]), T(bio.durg[k]))'
+           accu += prod_diff_double_exclude(weibull_diff, bio, i, selVar, w, λ, k, j) .* grad_weibull_diff(σ, λ, w, T(bio.durd[j]), T(bio.durg[j])) * grad_weibull_diff(σ, λ, w, T(bio.durd[k]), T(bio.durg[k]))'
         end
       end
       ∇²pdf += accu 
@@ -63,6 +62,7 @@ function hessian_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Ty
 	∂pdf *= ∂ᵤΓh(λ[3], w)
     ∇²pdf[3,:] = ∂pdf 
     ∇²pdf[:,3] = ∂pdf 
+    ∇²pdf[3,3] = p_wei * ∂²ᵤᵤΓh(λ[3], w) 
     return ∇²pdf 
   end
   return proxyHessian

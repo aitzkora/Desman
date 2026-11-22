@@ -15,7 +15,6 @@ function weibull_diff(σ,μ, w::T, xd::T, xg::T) where {T<:Real}
   return fd-fg
 end
 
-
 """
 computes ∇ᵤG = [∂μ1G, ∂αG, 0, ∂zG]ᵀ
 """
@@ -94,39 +93,55 @@ function hessian_weibull_diff(σ::SubArray{T, 1, Matrix{T},Tuple{Int64,Vector{In
 
   g1d = fd*α*(xd/θ)^α*∂₁θ/θ
   g1g = fg*α*(xg/θ)^α*∂₁θ/θ
-  
-  # upper left value
-  H[1,1]     = g1d * α*(xd/θ)^α               * ∂₁θ/θ - 
-                fd * α*α*(xd/θ)^α*∂₁θ/θ       * ∂₁θ/θ - 
-                fd * α*(xd/θ)^α               * (∂₁θ/θ)^2
-  H[1,1]    -=(g1g * α*(xg/θ)^α               * ∂₁θ/θ - 
-                fg * α*α*(xg/θ)^α*∂₁θ/θ       * ∂₁θ/θ - 
-                fg * α*(xg/θ)^α               * (∂₁θ/θ)^2)
 
-  # second off diagonal values
-  H[1,2]  = fd*∂₁θ/θ*(xd/θ)^α*(T(1)+α*log(xd/θ)*(T(1)-(xd/θ)^α))
-  H[1,2] -= fg*∂₁θ/θ*(xg/θ)^α*(T(1)+α*log(xg/θ)*(T(1)-(xg/θ)^α))
+  v_block = zero(T)
 
-  H[2,1]  = H[1,2]
+  if (xd != zero(T))
+    # upper left value
+    H[1,1]     = g1d * α*(xd/θ)^α               * ∂₁θ/θ - 
+                  fd * α*α*(xd/θ)^α*∂₁θ/θ       * ∂₁θ/θ - 
+                  fd * α*(xd/θ)^α               * (∂₁θ/θ)^2
+    # second off diagonal values
+    H[1,2]  = fd*∂₁θ/θ*(xd/θ)^α*(T(1)+α*log(xd/θ)*(T(1)-(xd/θ)^α))
 
-  # second diagonal value
-  H[2,2]  = -fd * log(xd/θ)^2 * (xd/θ)^α * (T(1)-(xd/θ)^α)
-  H[2,2] -= -fg * log(xg/θ)^2 * (xg/θ)^α * (T(1)-(xg/θ)^α)
-           
-  # last first row value
-  H[1,4:end]  = -α^2 * fd * ∂₁θ/θ*(xd/θ)^α *(T(1) - (xd/θ)^α).*σ[:]
-  H[1,4:end] -= -α^2 * fg * ∂₁θ/θ*(xg/θ)^α *(T(1) - (xg/θ)^α).*σ[:]
-  H[4:end,1]  = view(H, 1,4:n)
+    # second diagonal value
+    H[2,2]  = -fd * log(xd/θ)^2 * (xd/θ)^α * (T(1)-(xd/θ)^α)
 
-  # last second row value
-  H[2,4:end]  = fd * (xd/θ)^α * (T(1) + α * log(xd/θ) * (T(1) - (xd/θ)^α)) .* σ[:]
-  H[2,4:end] -= fg * (xg/θ)^α * (T(1) + α * log(xg/θ) * (T(1) - (xg/θ)^α)) .* σ[:]
+    # last first row value
+    H[1,4:end]  = -α^2 * fd * ∂₁θ/θ*(xd/θ)^α *(T(1) - (xd/θ)^α).*σ[:]
 
-  H[4:end,2] = view(H,2, 4:n)
+    # last second row value
+    H[2,4:end]  = fd * (xd/θ)^α * (T(1) + α * log(xd/θ) * (T(1) - (xd/θ)^α)) .* σ[:]
 
-  # last block, rank one tensor
-  v_block = - α^2*(fd * (xd/θ)^α * (T(1) - (xd/θ)^α) - fg * (xg/θ)^α * (T(1) - (xg/θ)^α))
+    # last block, rank one tensor
+    v_block  = - α^2* fd * (xd/θ)^α * (T(1) - (xd/θ)^α)
+  end
+  if (xg!=Inf) && (xg != zero(T))
+    # second off diagonal values
+    H[1,1]    -=(g1g * α*(xg/θ)^α               * ∂₁θ/θ - 
+                  fg * α*α*(xg/θ)^α*∂₁θ/θ       * ∂₁θ/θ - 
+                  fg * α*(xg/θ)^α               * (∂₁θ/θ)^2)
+    # upper left value
+    H[1,2] -= fg*∂₁θ/θ*(xg/θ)^α*(T(1)+α*log(xg/θ)*(T(1)-(xg/θ)^α))
+
+    # second diagonal value
+    H[2,2] -= -fg * log(xg/θ)^2 * (xg/θ)^α * (T(1)-(xg/θ)^α)
+             
+    # last first row value
+    H[1,4:end] -= -α^2 * fg * ∂₁θ/θ*(xg/θ)^α *(T(1) - (xg/θ)^α).*σ[:]
+
+    # last second row value
+    H[2,4:end] -= fg * (xg/θ)^α * (T(1) + α * log(xg/θ) * (T(1) - (xg/θ)^α)) .* σ[:]
+
+    # last block, rank one tensor
+    v_block += α^2* fg * (xg/θ)^α * (T(1) - (xg/θ)^α)
+  end
+
   H[4:end,4:end] = v_block * σ[:] * σ[:]'
+  # symmetrization
+  H[2,1]  = H[1,2]
+  H[4:end, 1] = view(H, 1, 4:n)
+  H[4:end, 2] = view(H, 2, 4:n)
 
   return H
 end

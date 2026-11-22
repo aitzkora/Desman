@@ -1,3 +1,4 @@
+
 using ForwardDiff
 # weibull
 
@@ -8,7 +9,7 @@ w = (rand(1)*10 .+ 10)[1]
 xg = rand(1)[1]
 xd = xg + rand(1)[1]
 
-@test FiniteDiff.finite_difference_gradient(x->weibull_diff(σ,x, w, xg, xd), λ) ≈ grad_weibull_diff(σ, λ, w, xg, xd) atol=1e-10
+@test ForwardDiff.gradient(x->weibull_diff(σ,x, w, xg, xd), λ) ≈ grad_weibull_diff(σ, λ, w, xg, xd) atol=1e-10
 
 @test ForwardDiff.hessian(x->weibull_diff(σ,x, w, xg, xd),λ) ≈ hessian_weibull_diff(σ, λ, w, xg, xd) atol=1e-10
 
@@ -17,8 +18,11 @@ xd = xg + rand(1)[1]
 @test isfinite(norm(grad_weibull_diff(σ, λ, w, xd, 0.0)))
 @test isfinite(norm(grad_weibull_diff(σ, λ, w, xd, Inf)))
 
-# pdf_frailty
+@test isfinite(norm(hessian_weibull_diff(σ, λ, w, 0.0, xg)))
+@test isfinite(norm(hessian_weibull_diff(σ, λ, w, xd, 0.0)))
+@test isfinite(norm(hessian_weibull_diff(σ, λ, w, xd, Inf)))
 
+# pdf_frailty
 bio, λ = fixture()
 i = 12
 selVar = [3,4];
@@ -38,4 +42,4 @@ w = (rand(1)*10 .+ 10)[1]
 w = w
 μ = [λ;γ]
 @test grad_pdf_frailty(bio,i, selVar)(w, μ) ≈ grad_pdf_frailty(bio,i, selVar)(w, μ) atol=1e-10
-
+@test hessian_pdf_frailty(bio, i, selVar, Float64)(w, μ) ≈ FiniteDiff.finite_difference_hessian(x->g(w,x), μ) atol=1e-10

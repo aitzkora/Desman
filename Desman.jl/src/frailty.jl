@@ -67,3 +67,5 @@ function hessian_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}, ::Ty
   end
   return proxyHessian
 end
+# default type is Float64
+hessian_pdf_frailty(bio::Biotope, i::Int64, selVar::Vector{Int64}) = hessian_pdf_frailty(bio, i, selVar, Float64)

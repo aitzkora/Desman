@@ -8,6 +8,10 @@ selVar = [1,2]
 g_ana =  grad_logLikelihood(bio, selVar)(μ₀) 
 g_diff = FiniteDiff.finite_difference_gradient(logLikelihood(bio, selVar), μ₀)
 @test norm(g_ana-g_diff)/norm(g_diff) < 0.02
+# hessian check up to 2%
+h_diff = FiniteDiff.finite_difference_hessian(logLikelihood(bio, selVar), μ₀)
+h_ana = hessian_logLikelihood(bio, selVar)(μ₀)
+@test norm(h_ana-h_diff)/norm(h_diff) < 0.02
 
 #test inplace fun and gradient computation
 fg! = getfg!(bio, selVar)

@@ -24,7 +24,8 @@ export pdf_frailty, grad_pdf_frailty, hessian_pdf_frailty
 include("frailty.jl")
 
 # likelihood related stuff
-export logLikelihood, grad_logLikelihood, getfg!, getg!
+export logLikelihood, grad_logLikelihood, hessian_logLikelihood, 
+       getfg!, getg!
 include("likelihood.jl")
 
 # optimization algos

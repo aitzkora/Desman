@@ -48,6 +48,22 @@ function grad_logLikelihood(b::Biotope, selVar::Vector{Int64})
                  quadgk(x->pdf_frailty(b, i, selVar)(x,λ), 0.0, Inf,rtol=rtol)[1] for i=1:b.N])
 end
 
+
+function hessian_logLikelihood(b::Biotope, selVar::Vector{Int64})
+  function proxyHessianLog(λ)
+    rtol=1.e-8
+    n = size(λ, 1)
+    H = zeros(Float64, n,n)
+    for i=1:b.N
+      ∇Lᵢ = quadgk(x->grad_pdf_frailty(b, i, selVar)(x,λ), 0.0, Inf, rtol=rtol)[1]
+      Lᵢ = quadgk(x->pdf_frailty(b, i, selVar)(x,λ), 0.0, Inf,rtol=rtol)[1]
+      ∇²Lᵢ = quadgk(x->hessian_pdf_frailty(b, i, selVar)(x,λ), 0.0, Inf, rtol=rtol)[1]
+      H += ∇Lᵢ * ∇Lᵢ' ./ Lᵢ^2 - ∇²Lᵢ ./ Lᵢ
+    end 
+    return H
+  end 
+end
+
 function logLikelihood(b::Biotope)
   logLikelihood(b, Int64[])
 end

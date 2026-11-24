@@ -96,6 +96,7 @@ function optimizeIpopt(bio, selVar, λ; lbval::Float64 = 1e-6, ϵ::Float64=5e-5)
       f, (x,g)->nothing, ∇f!, (args...)->nothing, H!)
 	prob.x = μ₀
     Ipopt.AddIpoptIntOption(prob, "print_level", 1) 
+    Ipopt.AddIpoptNumOption(prob, "tol", ϵ) 
     Ipopt.OpenIpoptOutputFile(prob, "tempo.txt", 5)
     solvestat = Ipopt.IpoptSolve(prob)
     it = 0

@@ -56,7 +56,7 @@ for i=0:2^nCov-1
    fsols[i+1]= fsol
    gsols[i+1]= norm(gsol)
    AIC[i+1]= 2*fsol + 2*nVar
-   @printf("| %s | %03.8f | %03.5f | %05d | %05d |\n", blanksPad(selVars[i+1],nCov) ,AIC[i+1], norm(gsol), it, nsim)
+   @printf("| %s | %03.8f | %0.2e | %05d | %05d |\n", blanksPad(selVars[i+1],nCov) ,AIC[i+1], norm(gsol), it, nsim)
   else
    sols[i+1] = Float64[]
    fsols[i+1] = Inf

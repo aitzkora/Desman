@@ -2,7 +2,6 @@ module Desman
 
 using Infiltrator
 using Revise
-
 # Desmanen komunei buruzko informazioa 😉
 export Biotope
 include("biotope.jl")
@@ -25,11 +24,11 @@ include("frailty.jl")
 
 # likelihood related stuff
 export logLikelihood, grad_logLikelihood, hessian_logLikelihood, 
-       getfg!, getg!
+       getfg!, getg!, hessian_log_ipopt
 include("likelihood.jl")
 
 # optimization algos
-export optimizeINRIA
+export optimizeINRIA, optimizeIpopt
 include("optimize.jl")
 
 # Miscellanous

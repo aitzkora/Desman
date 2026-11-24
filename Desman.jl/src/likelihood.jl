@@ -64,7 +64,45 @@ function hessian_logLikelihood(b::Biotope, selVar::Vector{Int64})
   end 
 end
 
+
+function hessian_log_ipopt(b::Biotope, selVar::Vector{Int64})
+  function H!(λ::Vector{Float64},
+		      rows::Vector{Int32},
+		      cols::Vector{Int32},
+		      obj_factor::Float64,
+              lag_mul::Vector{Float64}, 
+		      values::Union{Nothing, Vector{Float64}})
+	rtol=1.e-8
+	n = size(λ, 1)
+	if values == nothing
+	  idx=1
+	  for i=1:n
+		for j=1:i
+		  rows[idx] = i
+		  cols[idx] = j
+          idx+=1 
+		end
+	  end
+	else
+	  H = zeros(Float64, n,n)
+      for i=1:b.N
+		∇Lᵢ = quadgk(x->grad_pdf_frailty(b, i, selVar)(x,λ), 0.0, Inf, rtol=rtol)[1]
+		Lᵢ = quadgk(x->pdf_frailty(b, i, selVar)(x,λ), 0.0, Inf,rtol=rtol)[1]
+		∇²Lᵢ = quadgk(x->hessian_pdf_frailty(b, i, selVar)(x,λ), 0.0, Inf, rtol=rtol)[1]
+		H += ∇Lᵢ * ∇Lᵢ' ./ Lᵢ^2 - ∇²Lᵢ ./ Lᵢ
+	  end 
+	  idx=1
+	  for i=1:n
+		for j=1:i
+		  values[idx] = obj_factor * H[i, j]
+          idx+=1 
+		end
+	  end
+	end 
+  end
+  return H!
+end
+
 function logLikelihood(b::Biotope)
   logLikelihood(b, Int64[])
 end
-

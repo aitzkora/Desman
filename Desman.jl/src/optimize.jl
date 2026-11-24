@@ -2,7 +2,7 @@ using N2QN1_jll
 using LinearAlgebra
 using Libdl:dlopen, dlsym
 using Printf
-
+using Ipopt
 
 function init_N2QN1()
    global n2qn1_ptr
@@ -79,3 +79,29 @@ function optimizeINRIA(bio, selVar, λ; lbval::Float64 = 1e-6, ϵ::Float64=5e-5,
     g!(gout, xout)
     return fout, xout, gout, it, sim
 end 
+
+function optimizeIpopt(bio, selVar, λ; lbval::Float64 = 1e-6, ϵ::Float64=5e-5, print_iter::Bool=false)
+    m = 0 
+    f = logLikelihood(bio, selVar)
+    nVar = length(selVar)
+    ∇f! = (x, y) -> getg!(bio, selVar)(y,x)
+    μ₀ = [λ; ones(nVar)]
+    μₗ = [lbval*ones(3); -Inf*ones(nVar)];
+    μᵤ = Inf*[ones(3) ; ones(nVar)];
+    H! = hessian_log_ipopt(bio, selVar)
+    n = size(μ₀, 1)
+    prob = Ipopt.CreateIpoptProblem(
+      n, μₗ, μᵤ, m, Float64[], Float64[], 0, n*(n+1)÷2,
+      f, (x,g)->nothing, ∇f!, (args...)->nothing, H!)
+	prob.x = μ₀
+    if (print_iter)
+      Ipopt.AddIpoptIntOption(prob, "print_level", 3) 
+    else 
+      Ipopt.AddIpoptIntOption(prob, "print_level", 0) 
+    end
+    solvestat = Ipopt.IpoptSolve(prob)
+    gout = zeros(length(μ₀))
+    ∇f!(prob.x, gout)
+    return prob.obj_val, prob.x, gout, 100, 100
+end 
+

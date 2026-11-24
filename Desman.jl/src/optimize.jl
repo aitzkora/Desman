@@ -3,6 +3,7 @@ using LinearAlgebra
 using Libdl:dlopen, dlsym
 using Printf
 using Ipopt
+using StringViews, Mmap
 
 function init_N2QN1()
    global n2qn1_ptr
@@ -80,7 +81,7 @@ function optimizeINRIA(bio, selVar, λ; lbval::Float64 = 1e-6, ϵ::Float64=5e-5,
     return fout, xout, gout, it, sim
 end 
 
-function optimizeIpopt(bio, selVar, λ; lbval::Float64 = 1e-6, ϵ::Float64=5e-5, print_iter::Bool=false)
+function optimizeIpopt(bio, selVar, λ; lbval::Float64 = 1e-6, ϵ::Float64=5e-5)
     m = 0 
     f = logLikelihood(bio, selVar)
     nVar = length(selVar)
@@ -94,14 +95,21 @@ function optimizeIpopt(bio, selVar, λ; lbval::Float64 = 1e-6, ϵ::Float64=5e-5,
       n, μₗ, μᵤ, m, Float64[], Float64[], 0, n*(n+1)÷2,
       f, (x,g)->nothing, ∇f!, (args...)->nothing, H!)
 	prob.x = μ₀
-    if (print_iter)
-      Ipopt.AddIpoptIntOption(prob, "print_level", 3) 
-    else 
-      Ipopt.AddIpoptIntOption(prob, "print_level", 0) 
-    end
+    Ipopt.AddIpoptIntOption(prob, "print_level", 1) 
+    Ipopt.OpenIpoptOutputFile(prob, "tempo.txt", 5)
     solvestat = Ipopt.IpoptSolve(prob)
+    it = 0
+    nsim = 0
+    open("tempo.txt", "r") do io
+      s = StringView(mmap(io))
+      v = match(r"Number of Iterations....:\s+(\d+)", s)
+      it = isnothing(v) ? 0 : parse(Int64, v[1])
+      v = match(r"Number of objective function evaluations\s+=\s+(\d+)", s) 
+      nsim = isnothing(v) ? 0 : parse(Int64, v[1])
+    end
+    run(`rm tempo.txt`)
     gout = zeros(length(μ₀))
     ∇f!(prob.x, gout)
-    return prob.obj_val, prob.x, gout, 100, 100
+    return prob.obj_val, prob.x, gout, nsim, it
 end 
 

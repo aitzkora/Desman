@@ -45,22 +45,22 @@ AIC = zeros(2^nCov)
 errors = []
 @printf("| covariates | AIC(x)       | |∇f(x)| |  #it  |  #sim |\n")
 
-_, sol₀, _ , _, _ = optimizeIpopt(bio, selVars[1], λ; lbval= 1e-6, ϵ = 5e-5, print_iter=false)
+_, sol₀, _ , _, _ = optimizeIpopt(bio, selVars[1], λ; lbval= 1e-6, ϵ = 5e-5)
 
-#for i=0:2^nCov-1
-#  selVars[i+1] = findall(digits(i, base=2, pad=nCov).!=0)
-#  if (!(selVars[i+1] in errors))
-#   nVar = length(selVars[i+1])
-#   fsol, sol, gsol, it, nsim = optimizeIpopt(bio, selVars[i+1], sol₀[1:3]; lbval= 1e-6, ϵ = 5e-5, print_iter=false)
-#   sols[i+1]= sol 
-#   fsols[i+1]= fsol
-#   gsols[i+1]= norm(gsol)
-#   AIC[i+1]= 2*fsol + 2*nVar
-#   @printf("| %s | %03.8f | %03.5f | %05d | %05d |\n", blanksPad(selVars[i+1],nCov) ,AIC[i+1], norm(gsol), it, nsim)
-#  else
-#   sols[i+1] = Float64[]
-#   fsols[i+1] = Inf
-#   gsols[i+1] = Inf
-#   AIC[i+1] = Inf
-#  end
-#end
+for i=0:2^nCov-1
+  selVars[i+1] = findall(digits(i, base=2, pad=nCov).!=0)
+  if (!(selVars[i+1] in errors))
+   nVar = length(selVars[i+1])
+   fsol, sol, gsol, nsim, it = optimizeIpopt(bio, selVars[i+1], sol₀[1:3]; lbval= 1e-6, ϵ = 5e-5)
+   sols[i+1]= sol 
+   fsols[i+1]= fsol
+   gsols[i+1]= norm(gsol)
+   AIC[i+1]= 2*fsol + 2*nVar
+   @printf("| %s | %03.8f | %03.5f | %05d | %05d |\n", blanksPad(selVars[i+1],nCov) ,AIC[i+1], norm(gsol), it, nsim)
+  else
+   sols[i+1] = Float64[]
+   fsols[i+1] = Inf
+   gsols[i+1] = Inf
+   AIC[i+1] = Inf
+  end
+end

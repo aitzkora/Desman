@@ -2,7 +2,7 @@
 
 julia_version = "1.13.4"
 manifest_format = "2.1"
-project_hash = "646dae4dd900498cd10ef1c581c8975c41792466"
+project_hash = "307470683b0933e786cefcb5415687b419a2f293"
 
 [[deps.ASL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
@@ -312,7 +312,7 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 version = "1.9.1"
 
 [[deps.Desman]]
-deps = ["BenchmarkTools", "CSV", "DataFrames", "Distributions", "FiniteDiff", "ForwardDiff", "Infiltrator", "Ipopt", "JLD2", "Libdl", "LinearAlgebra", "N2QN1_jll", "Plots", "Printf", "QuadGK", "Revise", "SpecialFunctions", "Test"]
+deps = ["BenchmarkTools", "CSV", "DataFrames", "Distributions", "FiniteDiff", "ForwardDiff", "Infiltrator", "Ipopt", "JLD2", "Libdl", "LinearAlgebra", "Mmap", "N2QN1_jll", "Plots", "Printf", "QuadGK", "Revise", "SpecialFunctions", "StringViews", "Test"]
 path = "."
 uuid = "1e7d66ab-8f2c-446a-a81a-b7a18fc2a4b1"
 version = "0.1.0"
@@ -370,10 +370,10 @@ version = "0.0.20230411+1"
 
 [[deps.Expat_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "f2659a735f9360fedfa29925812380f322679e93"
+git-tree-sha1 = "30fbbf8fb9d4e5d3264b4eb10c04f8a9ebaf9381"
 registries = "General"
 uuid = "2e619515-83b5-522b-bb60-26c02a35a201"
-version = "2.10.0+0"
+version = "2.11.0+0"
 
 [[deps.FFMPEG]]
 deps = ["FFMPEG_jll"]
@@ -1262,10 +1262,10 @@ version = "0.5.2+0"
 
 [[deps.Roots]]
 deps = ["Accessors", "CommonSolve", "Printf"]
-git-tree-sha1 = "15f266d7b3039ca0608d2c53bb32225b96932310"
+git-tree-sha1 = "2c8f6d5798bbb31b65d2ef65e660ab7fc00f7683"
 registries = "General"
 uuid = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
-version = "3.0.14"
+version = "3.0.15"
 
     [deps.Roots.extensions]
     RootsChainRulesCoreExt = "ChainRulesCore"
@@ -1414,6 +1414,12 @@ git-tree-sha1 = "9e3a02d73a8f0a9be04e677dbef758aab40f8bea"
 registries = "General"
 uuid = "892a3eda-7b42-436c-8928-eab12a02cf0e"
 version = "0.6.1"
+
+[[deps.StringViews]]
+git-tree-sha1 = "ed87b4cadeed52140d6ffb310215c80782069f71"
+registries = "General"
+uuid = "354b36f9-a18e-4713-926e-db85100087ba"
+version = "2.0.1"
 
 [[deps.StructUtils]]
 deps = ["Dates", "UUIDs"]

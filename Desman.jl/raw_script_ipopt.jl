@@ -43,7 +43,7 @@ gsols = zeros(2^nCov)
 AIC = zeros(2^nCov)
 #errors = [ [1,2,3], [3,4] , [1, 2, 3, 4, 5], [2,3,4], [1,2,3,4], [5], [3,5], [4,5], [2,3,4,5]]
 errors = []
-@printf("| covariates | AIC(x)       | |∇f(x)| |  #it  |  #sim |\n")
+@printf("| covariates | AIC(x)       | |∇f(x)|  |  #it  |  #sim |\n")
 
 _, sol₀, _ , _, _ = optimizeIpopt(bio, selVars[1], λ; lbval= 1e-6, ϵ = 5e-5)
 

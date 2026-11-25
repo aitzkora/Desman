@@ -2,7 +2,7 @@
 
 julia_version = "1.13.4"
 manifest_format = "2.1"
-project_hash = "307470683b0933e786cefcb5415687b419a2f293"
+project_hash = "08896a607a1802915f171a8c392bceabbecaac96"
 
 [[deps.ASL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
@@ -312,7 +312,7 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 version = "1.9.1"
 
 [[deps.Desman]]
-deps = ["BenchmarkTools", "CSV", "DataFrames", "Distributions", "FiniteDiff", "ForwardDiff", "Infiltrator", "Ipopt", "JLD2", "Libdl", "LinearAlgebra", "Mmap", "N2QN1_jll", "Plots", "Printf", "QuadGK", "Revise", "SpecialFunctions", "StringViews", "Test"]
+deps = ["BenchmarkTools", "CSV", "DataFrames", "Distributions", "FiniteDiff", "ForwardDiff", "Ipopt", "JLD2", "Libdl", "LinearAlgebra", "Mmap", "N2QN1_jll", "Plots", "Printf", "QuadGK", "Revise", "SpecialFunctions", "StringViews", "Test"]
 path = "."
 uuid = "1e7d66ab-8f2c-446a-a81a-b7a18fc2a4b1"
 version = "0.1.0"
@@ -600,13 +600,6 @@ registries = "General"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.31"
 
-[[deps.Infiltrator]]
-deps = ["InteractiveUtils", "Markdown", "REPL", "UUIDs"]
-git-tree-sha1 = "9cf4bcf30ef66573ffd223fa3803e762ef64dfbd"
-registries = "General"
-uuid = "5903a43b-9cc3-4c30-8d17-598619ec4e9b"
-version = "1.9.12"
-
 [[deps.InlineStrings]]
 git-tree-sha1 = "06b65886c7577a3784d616e29f1302c2e36e389d"
 registries = "General"
@@ -725,11 +718,11 @@ uuid = "aacddb02-875f-59d6-b918-886e6ef4fbf8"
 version = "3.2.1+0"
 
 [[deps.JuliaInterpreter]]
-deps = ["CodeTracking", "InteractiveUtils", "Random"]
-git-tree-sha1 = "28cb2c1b2e8fe3a9aa50ac75f2eead535bc89f05"
+deps = ["CodeTracking", "InteractiveUtils", "PrecompileTools", "Random"]
+git-tree-sha1 = "bd036e78799a88c34f47f4568cee8ac592ae15ea"
 registries = "General"
 uuid = "aa1ae85d-cabe-5617-a682-6adf51b2e16a"
-version = "0.12.3"
+version = "0.12.4"
 
 [[deps.JuliaSyntaxHighlighting]]
 deps = ["StyledStrings"]
@@ -1068,10 +1061,10 @@ version = "1.5.1"
 
 [[deps.Plots]]
 deps = ["Base64", "Contour", "Dates", "Downloads", "FFMPEG", "GR", "JLFzf", "JSON", "LaTeXStrings", "Latexify", "LinearAlgebra", "Measures", "NaNMath", "Pkg", "PlotThemes", "PlotUtils", "PrecompileTools", "Printf", "REPL", "Random", "RecipesBase", "RecipesPipeline", "Reexport", "RelocatableFolders", "Requires", "Scratch", "Showoff", "SparseArrays", "Statistics", "StatsBase", "TOML", "UUIDs", "UnicodeFun", "Unzip"]
-git-tree-sha1 = "870db50cd0b5bd7a2f083512cf4b0f1e790453c2"
+git-tree-sha1 = "6952186a9cb90c7b73dc2c0b47cdf8837be08333"
 registries = "General"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
-version = "1.41.8"
+version = "1.41.9"
 
     [deps.Plots.extensions]
     FileIOExt = "FileIO"

@@ -1,6 +1,5 @@
 module Desman
 
-using Infiltrator
 using Revise
 # Desmanen komunei buruzko informazioa 😉
 export Biotope

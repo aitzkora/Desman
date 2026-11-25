@@ -95,10 +95,15 @@ function optimizeIpopt(bio, selVar, λ; lbval::Float64 = 1e-6, ϵ::Float64=5e-5)
       n, μₗ, μᵤ, m, Float64[], Float64[], 0, n*(n+1)÷2,
       f, (x,g)->nothing, ∇f!, (args...)->nothing, H!)
 	prob.x = μ₀
-    Ipopt.AddIpoptIntOption(prob, "print_level", 1) 
+    # set options
+    Ipopt.AddIpoptStrOption(prob, "sb", "yes") 
+    Ipopt.AddIpoptIntOption(prob, "print_level", 0) 
     Ipopt.AddIpoptNumOption(prob, "tol", ϵ) 
     Ipopt.OpenIpoptOutputFile(prob, "tempo.txt", 5)
+    # launch the solver
     solvestat = Ipopt.IpoptSolve(prob)
+    # parse the figures into the resul file
+    # use a trick found here https://discourse.julialang.org/t/something-like-grep-q-string-filename-in-julia/106959/4
     it = 0
     nsim = 0
     open("tempo.txt", "r") do io
